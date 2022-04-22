@@ -1,3 +1,195 @@
+#Webpack 使用篇
+> 主要包含entry入口 output出口  plugins插件 和 loader解析器
+- entry
+- output
+- plugins
+- loader
+> test  匹配规则解析文件的规则
+> 
+> use 使用到的 loader 数组或者字符串均可
+- 其他关键配置
+```
+mode: 'development', //development 或者 production   通过process.env.NODE_ENV获取对应 mode 的值
+devtool：'eval', // 开发环境 最佳： eval-cheap-module-source-map 生产环境 最佳： hidden-source-map
+watch: true, // 基本不用。是否开启文件变化监听，开启后，文件变化自动编译，但是得手动刷新浏览器才可以改变
+ watchOptions: {    
+     ignored: /node_modules/,        
+     // 文件变化后多久去执行 
+     aggregateTimeout:500,        
+     //每秒监听次数1000次       
+     poll:1000   
+ }
+
+```
+
+模块也就是以es-module 和commonJS形式导入导出的各个文件就是模块
+
+
+
+
+###1. es6,7,8 --> es5  
+babel-loader 
+@babel/preset-env 
+@babel/core
+@babel/plugin-transform-runtime
+> 相当于将全局引入的一些工具函数，core.js 中的 api，或是Generator/async函数时候默认是注入到使用的类中改为统一引用一处，可节省大量打包代码
+> 
+@babel/plugin-proposal-decorators // 装饰器
+
+@babel/plugin-proposal-class-properties // 类属性
+
+@babel/plugin-proposal-private-methods
+
+@babel/runtime
+
+@babel/runtime-corejs3
+```javascript
+{
+            test:/\.js$/,
+            use:{
+              loader:'babel-loader',
+              options:{
+                presets:['@babel/preset-env']
+              }
+            },
+            exclude:/node_modules/
+ }
+```
+### 2. 解析样式文件 css，less 文件
+>style-loader css-loader less less-loader
+
+- 添加浏览器前缀
+>postcss-loader autoprefixer
+
+
+- 拆分，并将所有样式文件合并
+>mini-css-extract-plugin
+
+配置如下
+
+```javascript
+     rules: [ {
+                test: /\.less$/,
+                use: [MiniCssExtractPlugin.loader, 'css-loader', {
+                    loader: "postcss-loader",
+                    options: {plugins: [require('autoprefixer')]}
+                }, 'less-loader']
+            },
+            {
+                test: /\.css$/,
+                use: [MiniCssExtractPlugin.loader, 'css-loader']
+            }]
+```
+
+## 3.对文件解析
+```javascript
+{
+                test: /\.(png|jpg|gif)$/i,// i表示不区分大小写
+                // test: /\.(jpe?g|png|gif)$/i, //图片文件
+
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            limit: 100 * 1024,// 限制100kb以内用 base64加载图片，超过则请求本地图片文件 http://localhost:3000/img/WX.9ad4dbad.png
+                            fallback: {
+                                loader: "file-loader",
+                                options:{
+                                    name: 'img/[name].[hash:8].[ext]'
+                                }
+                            }
+                        }
+                    }]
+            }
+```
+
+### 4. 其他一些关键词
+
+#### resolve
+> 用来设置通配符等
+
+#### externals
+#### DllPlugin  DLLReferencePlugin
+> 将一些如 React React-dom  vue 等等不会变动的库打包成动态链接库，下次打包不会再编译
+> 在 index.html 中 script 的形式引入进去。 同时防止 clean 插件清除改打包后的链接库
+
+#### optimization.splitChunks
+> 用来抽离公共模块
+
+
+##webpack 优化
+###1. SpeedMeasureWebpackPlugin
+> 会显示每个 loader 的运行时间，用以找出耗时插件并优化。
+```javascript
+const SpeedMeasureWebpackPlugin = require('speed-measure-webpack-plugin')
+const speedPlugin = new SpeedMeasureWebpackPlugin()
+module.exports = speedPlugin.wrap(config)
+```
+
+###2. HappyPack 多线程打包  不维护建议改用thread-loader
+使用
+```javascript
+const Happypack = require('happypack');
+module.exports = {
+    //...
+    module: {
+        rules: [
+            {
+                test: /\.js[x]?$/,
+                // 使用 plugins 中定义的
+                use: 'Happypack/loader?id=jsPack',
+                include: [path.resolve(__dirname, 'src')]
+            }
+        ]
+    },
+    plugins: [
+        new Happypack({
+            id: 'jsPack', //和rule中的id=jsPack 名称保持一致
+            //js 解析用到的 loader 以参数形式传进 happypack 中去
+            use: ['babel-loader'] //就是原本 rules 里面的 use 参数
+        })
+    ]
+}
+
+```
+###3. exclude  include
+> 解析的时候缩小范围
+>
+###4. cache-loader 缓存
+> 有些 loader 自带缓存，比如 babel-loader 设置 cacheDirectory：true 即可开启缓存模式，
+> 对于没有缓存功能 loader 我们可以用 cache-loader
+
+使用
+```javascript
+rules: [{
+                test: /\.jsx?$/,
+                use: ['cache-loader','babel-loader']
+            }]
+
+```
+
+###5. 压缩代码
+optimize-css-assets-webpack-plugin
+
+使用
+```javascript
+plugins: [
+    // 省略...
+    new MiniCssExtractPlugin({
+      filename: 'css/[name].css',
+    }),
+    new OptimizeCssPlugin(),
+  ]
+```
+
+###5. webpack-bundle-analyzer 分析打包后的文件
+
+
+###6. @babel/plugin-transform-runtime
+> 在不配置 @babel/plugin-transform-runtime 时，babel 会使用很小的辅助函数来实现类似 _createClass 等公共方法。默认情况下，它将被注入(inject)到需要它的每个文件中。但是这样的结果就是导致构建出来的JS体积变大。
+
+
+
 Webpack原理篇
 
 实际调用 
@@ -100,7 +292,7 @@ const webpack = (options, callback) => {
 	return compiler;
 };
 ```
-![new WebpackOptionsDefaulter().process(options)](img_1.png)
+![new WebpackOptionsDefaulter().process(options)](image/img_1.png)
 
 
 
@@ -208,4 +400,18 @@ seal(callback)
 
 
 
-![webpack优化1](https://juejin.cn/post/7083519723484708878)
+[webpack优化1](https://juejin.cn/post/7083519723484708878)
+
+
+webpack-dev-serve原理
+
+https://juejin.cn/post/6844904008432222215#heading-2
+![img.png](image/img.png)
+
+![img_2.png](image/img_2.png)
+
+
+[webpack loader源码分析](https://blog.csdn.net/qq470603823/article/details/104246801)
+面试题
+文件指纹，js css 图片文件指纹如何设置  
+[10,11，12，14，16](https://juejin.cn/post/6844904094281236487)
