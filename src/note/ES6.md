@@ -99,7 +99,6 @@ isFinite() 和 isNaN() 的区别在于，传统方法先调用 Number () 将非�
 Math.trunc(a)  // 返回一个数的整数部分
 Math.sign(a)   // 判断是正数还是负数，还是 0  返回 0 1 -1
 
-
 ### 箭头函数不能使用 yield
 不可以使用yield命令，因此箭头函数不能用作 Generator 函数。
 
@@ -113,7 +112,6 @@ Array.from(arrayLike).map(x => x * x);
 // 将3号位复制到0号位
 [1, 2, 3, 4, 5].copyWithin(0, 3, 4)// 从 0 位开始替换，替换内容为数组的第三位到第四位（含头不含尾）
 // [4, 2, 3, 4, 5]
-
 
 ### find 找到数组中第一个满足条件的元素，找到后不再继续，在筛选唯一一个数据的时候可以替换 filter
 
@@ -137,7 +135,6 @@ flat() 将二维数组拉平，只会拉平一层
 [1, 2, [3, [4, 5]]].flat() // [1, 2, 3, [4, 5]]  flat(2)即拉平两层
 
 ```
-
 
 ### 链判断运算符 `?.`    ES2020
 ```javascript
@@ -181,7 +178,6 @@ obj.shouldNotReload ?? true //判null undefined后给默认值 true
 
 ```
 
-
 ### Symbol
 - enum 的常量。消除魔法字符串（也就是相同的字符串在项目中多次出现）
 - 作为对象的隐藏属性使用
@@ -194,3 +190,292 @@ Symbol("cat")   每次调用返回值都不一样
 
 const sym = Symbol('foo');// sym.description // "foo"
 const sym = Symbol.for('foo');// Symbol.keyFor(sym) // "foo"
+
+### Object.create
+```javascript
+/**
+ * @param proto 新创建对象的原型对象
+ * @param propertiesObject 添加到新对象的属性（自身属性而不是原型属性）
+ */
+Object.create(proto,[propertiesObject])
+
+```
+
+使用
+- 创建一个纯净的对象
+> 该对象不具备 Object 的任何属性，比如 toString方法等等，使用 null 参数创建的对象所有属性都是对象自身属性。for...in 遍历也不会遍历原型链对象
+```javascript
+const a = Object.create(null)
+```
+
+判断对象自身是否重写了 toString 方法，必须用`Object.prototype.hasOwnProperty.call(a,'toString')`检查，而 null 参数创建的直接 `if(a.toString)`判断
+
+### proxy 代理 Reflect
+
+const proxy = new Proxy({}, {})
+
+
+应用，实现数组索引负数则取 length + index 的索引
+```javascript
+const negativeArray = (els) => new Proxy(els, {
+  get: (target, propKey, receiver) => Reflect.get(target,
+    (+propKey < 0) ? String(target.length + +propKey) : propKey, receiver)
+});
+
+
+const unicorn = negativeArray([1,2,3]);
+
+unicorn[-1] // '3'
+```
+
+
+生成各种 dom 节点的函数 dom
+```javascript
+const dom = new Proxy({}, {
+  get(target, property) {
+    return function(attrs = {}, ...children) {
+      const el = document.createElement(property);
+      for (let prop of Object.keys(attrs)) {
+        el.setAttribute(prop, attrs[prop]);
+      }
+      for (let child of children) {
+        if (typeof child === 'string') {
+          child = document.createTextNode(child);
+        }
+        el.appendChild(child);
+      }
+      return el;
+    }
+  }
+});
+const el = dom.div({},
+  'Hello, my name is ',
+  dom.a({href: '//example.com'}, 'Mark'),
+  '. I like:',
+  dom.ul({},
+    dom.li({}, 'The web'),
+    dom.li({}, 'Food'),
+    dom.li({}, '…actually that\'s it')
+  )
+);
+document.body.appendChild(el);
+```
+
+
+配置接口请求
+![img.png](img.png)  地址https://www.bookstack.cn/read/es6-3rd/spilt.5.docs-proxy.md
+ReflectReflect Reflect
+
+#### Reflect
+> 1.Reflect和Proxy对象方法一一对应。都能找到
+> 2.让 Object的操作都变成函数行为 如 比如name in obj和delete obj[name]对应Reflect.has(obj, name)和Reflect.deleteProperty(obj, name)
+> 3.Object.defineProperty报错，Reflect.defineProperty(target, property, attributes)会直接返回 false
+> 4.为了将语言内部方法和 Object 方法区分开，后面语言内部方法全部从 Reflect 上获取
+
+
+### Iterator 与 generator
+for...in 遍历对象不适合遍历数组,遍历的是键名
+for...of 实现了 Iterator 接口就可遍历。通用的，遍历值，普通对象不能直接使用，要Object.keys处理
+forEach 不能跳出循环。
+
+
+for of 可以自动遍历
+```javascript
+function* bar() {
+    yield 'a';
+    yield 'b';
+}
+
+function* foo() {
+  yield 1;
+  yield 2;
+    for (let i of bar()) {
+        console.log(i);
+    }
+    // 或者用yield* bar()   yield*表达式,用来在一个 Generator 函数里面执行另一个 Generator 函数
+  yield 3;
+  yield 4;
+  yield 5;
+  return 6;
+}
+for (let v of foo()) {
+  console.log(v);
+}
+// 12ab345
+```
+
+1. 状态切换。更简洁，更安全，避免篡改。
+```javascript
+var clock = function* () {
+  while (true) {
+    console.log('collect!');
+    yield;
+    console.log('unCollect!');
+    yield;
+  }
+}();
+clock()
+clock()
+clock()
+clock()
+```
+
+
+### async await
+是 generator 的语法糖。内置执行器，返回的是 promise 对象
+
+原理  https://www.bookstack.cn/read/es6-3rd/spilt.4.docs-async.md
+
+
+
+- 顶层 await   https://www.bookstack.cn/read/es6-3rd/spilt.7.docs-async.md
+```javascript
+// awaiting.js
+let output;
+async function main() {
+  const dynamic = await import(someMission);
+  const data = await fetch(url);
+  output = someProcess(dynamic.default, data);
+}
+main();
+export { output };
+
+---------------------
+
+
+// awaiting.js
+let output;
+(async function1 main() {
+    const dynamic = await import(someMission);
+    const data = await fetch(url);
+    output = someProcess(dynamic.default, data);
+})();
+export { output };
+
+```
+
+
+### class
+类的数据类型就是函数，类本身就指向构造函数。
+typeof Point // "function"
+Point === Point.prototype.constructor // true
+
+
+```javascript
+class Point {
+  constructor() {
+    // ...
+  }
+  toString() {
+    // ...
+  }
+  toValue() {
+    // ...
+  }
+}
+// 等同于
+Point.prototype = {
+  constructor() {},
+  toString() {},
+  toValue() {},
+};
+```
+
+
+
+new.target 只有通过 new 关键字或者Reflect.construct()创建的实例  new.target才会返回 className（类名） 否则返回 undefined
+子类 new.target 返回子类名称。
+所以创建只能继承的类可以
+```javascript
+class Shape {
+  constructor() {
+    if (new.target === Shape) {
+      throw new Error('本类不能实例化');
+    }
+  }
+}
+```
+
+es5和 es6
+
+
+实例方法都是在原型上的（es5和 es6都一样）
+```javascript
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.testFunction = this.test
+    }
+    c = '222'
+    
+    static __run() {
+        console.log('__run')
+    }
+    
+    test(){
+        console.log('333')
+    }
+    toString() {
+        return '( x:' + this.x + ', y:' + this.y+ ', c:' + this.c + ')';
+    }
+}
+
+// super作为对象时，在普通方法中，指向父类的原型对象；在静态方法中，指向父类。
+// super对某个属性赋值，这时super就是this
+class Bar extends Point {
+    constructor() {
+        super();
+        // super 
+        super.test()
+    }
+    static classMethod() {
+        return super.__run() + ', too';
+    }
+    draw() {
+        super.test()
+        // super对某个属性赋值，这时super就是this
+        super.x = 3;
+        console.log(this.x); // 3
+    }
+}
+
+
+
+// 可以通过实例的__proto__属性为“类”添加方法。
+var point = new Point(2, 3);
+point.__proto__.functionName = function () {}
+```
+![img_2.png](img_2.png)
+
+静态方法在 new 出来的实例上是不存在的，只能用类名直接调用，
+子类静态方法可以通过  super.父类静态方法名 来调用父类静态方法
+es6 只有静态方法，没有静态属性，静态属性只能通过 className.prop = value来定义
+> super()实际上就是调用父类的构造函数  实际相当于也是
+
+
+2.继承
+es5 中
+const child = new Child()
+Parent.apply(child)
+
+> es6 直接是子类构造方法中调用 `super()` (实际相当于`new Parent()` )，因为在子类构造方法，所以直接加载到了子类 `this` 上了。实际相当于在子类构造方法里面调用了`parent.prototype.constructor.call(this)`
+子类实例创建是基于父类实例，所以必须在 super() 后才可以用 this 关键字
+
+Object.getPrototypeOf(Child) === Parent 从子类中获取父类实例。 用来判断继承关系
+
+```javascript
+class A {
+}
+class B extends A {
+}
+A.__proto__ === Function.prototype // true
+A.prototype.__proto__ === Object.prototype // true
+
+B.__proto__ === A // true
+B.prototype.__proto__ === A.prototype // true
+// 子类B的__proto__属性指向父类A，子类B的prototype属性的__proto__属性指向父类A的prototype属性
+```
+
+继承可以实现对原生类的扩展比如 Array。
+但是继承 Object 特殊，无法传参给 Object
