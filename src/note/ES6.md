@@ -61,6 +61,14 @@ test()// // 会报错 ReferenceError
 test(2)// 2
 ```
 ### 2. const定义‘常量’，只是引用地址不变，值无法保证，基础类型的不可变，引用类型（数组[]，对象{}）的值可能发生变化
+```javascript
+// good
+const a = 1;
+const b = 2;
+const c = 3;
+// best
+const [a, b, c] = [1, 2, 3];
+```
 ### 3. 结构 '='表示默认值   ':'表示重命名。
 ```javascript
 const data = { id: '232323' }
@@ -479,3 +487,149 @@ B.prototype.__proto__ === A.prototype // true
 
 继承可以实现对原生类的扩展比如 Array。
 但是继承 Object 特殊，无法传参给 Object
+
+
+### 规范
+
+1. 一律使用单引号，反引号
+2. 优先使用解构赋值。
+ ```javascript
+const [first, second] = arr;
+```
+```javascript
+// bad
+
+function getFullName(user) {
+    const firstName = user.firstName;
+    const lastName = user.lastName;
+}
+// good
+function getFullName(obj) {
+  const { firstName, lastName } = obj;
+}
+// best
+function getFullName({ firstName, lastName }) {
+}
+```
+3. 对象尽量静态化，一旦定义，就不得随意添加新的属性。如果添加属性不可避免，要使用Object.assign方法。尽量采用简洁表达。
+```javascript
+// bad
+const a = {};
+a.x = 3;
+// if reshape unavoidable
+const a = {};
+Object.assign(a, { x: 3 });
+// good
+const a = { x: null };
+a.x = 3;
+
+
+// =====================================
+
+// bad
+const obj = {
+    id: 5,
+    name: 'San Francisco',
+};
+obj[getKey('enabled')] = true;
+// good
+const obj = {
+    id: 5,
+    name: 'San Francisco',
+    [getKey('enabled')]: true,
+};
+
+
+// =============================================
+// bad
+const atom = {
+    ref: ref,
+    value: 1,
+    addValue: function (value) {
+        return atom.value + value;
+    },
+};
+// good
+const atom = {
+    ref,
+    value: 1,
+    addValue(value) {
+        return atom.value + value;
+    },
+};
+
+
+//==================使用默认值语法设置函数参数的默认值。===============
+// bad
+function handleThings(opts) {
+    opts = opts || {};
+}
+// good
+function handleThings(opts = {}) {
+    // ...
+}
+
+
+// ================ 使用 rest 不在函数中使用arguments数组 ===================
+function funName(a, b, ...others) {
+    
+}
+funName("1", "2", "3", "4");
+
+
+```
+
+4. 使用import取代require， 使用export取代module.exports。
+
+
+
+
+### 装饰器
+
+#### 类装饰器
+>本质是装饰器本质就是编译时执行的函数。
+
+```javascript
+class MyComponent extends React.Component {}
+export default connect(mapStateToProps, mapDispatchToProps)(MyComponent);
+
+// 可以改写为
+@connect(mapStateToProps, mapDispatchToProps)
+export default class MyComponent extends React.Component {}
+
+// 相当于执行了
+function connect(mapStateToProps, mapDispatchToProps) {
+    return function(target) {
+        // ...
+    }
+}
+```
+#### 方法装饰器
+> 仅限修饰类下面定义的方法，不可修饰单独函数。
+```javascript
+class AddClass {
+  @log
+  add(a, b) {
+    return a + b;
+  }
+}
+
+/**
+ * 
+ * @param target  __proto__ 原型对象,因为没有继承关系target就相当于AddClass.prototype === instance.__proto__
+ * @param name   修饰的方法名
+ * @param descriptor  方法的描述，实际就是方法本身
+ * @returns {*}
+ */
+function log(target, name, descriptor) {
+  var oldValue = descriptor.value;
+  // 相当于给add方法重新赋值为自定义的方法，再执行前加上日志
+  descriptor.value = function() {
+    console.log(`${name}的参数是`, arguments);
+    return oldValue.apply(this, arguments);
+  };
+  return descriptor;
+}
+const addClass = new AddClass();
+console.log(addClass.add(2, 4))
+```

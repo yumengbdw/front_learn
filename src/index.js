@@ -44,3 +44,4 @@ console.log(point.hasOwnProperty('y')) // true
 console.log(point.hasOwnProperty('c')) // true
 console.log(point.hasOwnProperty('toString')) // false
 console.log(point.__proto__.hasOwnProperty('toString')) // true
+
