@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test</title>
+</head>
+<body>
+<div>
+    <a href="ceshi" onClick="tagAClick(event)">测试1</a>
+    <a href="#ddddd">测试1</a>
+    <a href="#erwe">测试1</a>
+    <button onclick="jumpPage()">按钮跳转</button>
+</div>
+
+<script>
+    window.addEventListener('hashchange', () => {
+        console.log('hashchange监听 \n' + 'pathname:' + window.location.pathname + ' \nhash: ' + window.location.hash)
+    })
+
+    window.addEventListener('popstate', () => {
+        console.log('popstate被监听到了 \n' + 'pathname:' + window.location.pathname + ' \nhash: ' + window.location.hash)
+
+    })
+
+    function jumpPage(e) {
+        history.pushState({}, '', 'button')
+        console.log('button点击跳转 \n' + 'pathname:' + window.location.pathname + ' \nhash: ' + window.location.hash)
+    }
+
+    function tagAClick(e) {
+        history.pushState({}, '', 'ceshi')
+        console.log('a标签跳转 \n' + 'pathname:' + window.location.pathname + ' \nhash: ' + window.location.hash)
+        e.preventDefault();
+    }
+
+</script>
+</body>
+</html>
+
+
+<!--https://codepen.io/yumengbdw/pen/bGLrKoE-->

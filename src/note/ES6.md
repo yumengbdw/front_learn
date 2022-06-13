@@ -133,7 +133,8 @@ array.find((item, index, arr) => {}, obj)
 const abc = [10, 12, 26, 15].find(
     function f(v){ //箭头函数会改变 this 指向
        return v > this.age;
-       } , { age: 10 });    // 26
+       } , { age: 10 }
+);    // 26
 
 
 ```
@@ -271,7 +272,7 @@ document.body.appendChild(el);
 
 
 配置接口请求
-![img.png](img.png)  地址https://www.bookstack.cn/read/es6-3rd/spilt.5.docs-proxy.md
+![img.png](image/img3.png)  地址https://www.bookstack.cn/read/es6-3rd/spilt.5.docs-proxy.md
 ReflectReflect Reflect
 
 #### Reflect
@@ -404,6 +405,29 @@ class Shape {
 }
 ```
 
+
+ES6 一共有 5 种方法可以遍历对象的属性。
+
+（1）for…in
+
+for...in循环遍历对象`***自身的和继承***`的可枚举属性（不含 Symbol 属性）。
+
+（2）Object.keys(obj)
+
+Object.keys返回一个数组，包括对象自身的（不含继承的）所有可枚举属性（不含 Symbol 属性）的键名。
+
+（3）Object.getOwnPropertyNames(obj)
+
+Object.getOwnPropertyNames返回一个数组，包含对象自身的所有属性（不含 Symbol 属性，但是包括不可枚举属性）的键名。
+
+（4）Object.getOwnPropertySymbols(obj)
+
+Object.getOwnPropertySymbols返回一个数组，包含对象自身的所有 Symbol 属性的键名。
+
+（5）Reflect.ownKeys(obj)
+
+Reflect.ownKeys返回一个数组，包含对象自身的（不含继承的）所有键名，不管键名是 Symbol 或字符串，也不管是否可枚举。
+
 es5和 es6
 
 
@@ -454,7 +478,7 @@ class Bar extends Point {
 var point = new Point(2, 3);
 point.__proto__.functionName = function () {}
 ```
-![img_2.png](img_2.png)
+![img_2.png](image/img_5.png)
 
 静态方法在 new 出来的实例上是不存在的，只能用类名直接调用，
 子类静态方法可以通过  super.父类静态方法名 来调用父类静态方法
@@ -582,12 +606,32 @@ funName("1", "2", "3", "4");
 4. 使用import取代require， 使用export取代module.exports。
 
 
-
-
 ### 装饰器
 
 #### 类装饰器
->本质是装饰器本质就是编译时执行的函数。
+>本质是装饰器本质就是编译时执行的高阶函数。函数参数就是装饰器参数@decorator(params) 返回的函数参数target就是装饰的类本身
+
+
+```javascript
+
+function testable(isTestable) {
+  return function(target) {
+    target.isTestable = isTestable;
+  }
+}
+
+@testable(true)
+class MyTestable {}
+MyTestableClass.isTestable // true
+
+
+@testable(false)
+class MyNotTestable {}
+MyClass.isTestable // false
+```
+
+`@testable` 就是一个装饰器，装饰器修改了类的行为，为类添加了`isTestable`属性，`testable`函数对应的`target`参数就是类本身。
+
 
 ```javascript
 class MyComponent extends React.Component {}
