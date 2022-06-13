@@ -1,5 +1,7 @@
 Tapable 原理浅尝
 
+## Tapable的使用
+tap 注册 call调用，实际发布订阅模式大同小异，tap用来手机所有的回调，call用来执行回调方向。
 ```javascript
 const {SyncHook} = require("tapable");
 
