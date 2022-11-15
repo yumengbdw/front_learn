@@ -677,3 +677,7 @@ function log(target, name, descriptor) {
 const addClass = new AddClass();
 console.log(addClass.add(2, 4))
 ```
+
+<div className={'container'}>
+    <div>Hello React</div>
+</div>
