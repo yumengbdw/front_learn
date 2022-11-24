@@ -172,7 +172,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
 }
 ```
 
-taskQueue，里面存的都是过期的任务（即异步任务），依据任务的过期时间( expirationTime ) 排序，需要在调度的 workLoop 中循环执行完这些任务。
+taskQueue，里面存的都是过期的任务，依据任务的过期时间 排序，需要在调度的 workLoop 中循环执行完这些任务。
 timerQueue 里面存的都是没有过期的任务（即同步任务），依据任务的开始时间( startTime )排序，在调度 workLoop 中 会用advanceTimers检查任务是否过期，如果过期了，放入 taskQueue 队列。
 
 
@@ -372,3 +372,11 @@ workInProgressFiber.alternate = currentFiber
 ![](2022-11-16-17-02-55.png)
 
 
+### 更新
+重新创建一颗 workInProgresss 树，复用当前 current 树上的 alternate ，作为新的 workInProgress ，由于初始化 rootfiber 有 alternate ，所以对于剩余的子节点，React 还需要创建一份，和 current 树上的 fiber 建立起 alternate 关联。渲染完毕后，workInProgresss 再次变成 current 树。
+
+
+
+
+React 用 workInProgress 树(内存中构建的树) 和 current (渲染树) 来实现更新逻辑。双缓存一个在内存中构建，一个渲染视图，两颗树用 alternate 指针相互指向，在下一次渲染的时候，直接复用缓存树做为下一次渲染树，上一次的渲染树又作为缓存树，这样可以防止只用一颗树更新状态的丢失的情况，又加快了 DOM 节点的替换与更新。
+比如动画渲染计算耗时会导致清除上一帧画面到绘制当前帧画面之间有较长间隙，就会出现白屏，canvas 在内存中绘制当前动画，绘制完毕后直接用当前帧替换上一帧画面，由于省去了两帧替换间的计算时间，不会出现从白屏到出现画面的闪烁情况

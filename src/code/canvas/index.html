@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title>canvas</title>
+    <style>
+        canvas {
+            box-shadow: 0px 0px 5px #ccc;
+            border-radius: 8px;
+        }
+
+        .lottery {
+            width: 400px;
+            height: 150px;
+            position: relative;
+
+        }
+
+        #canvas_lottery,
+        .lottery-result {
+            position: absolute;
+            width: 100%;
+            height: 100px;
+            left: 0;
+            top: 30px;
+            text-align: center;
+            font-size: 25px;
+            line-height: 100px;
+            color: #f00;
+        }
+
+        .lottery-result {
+            z-index: -1;
+        }
+
+
+        .button {
+            display: inline-block;
+            width: 400px;
+            height: 100px;
+            background-color: #ffffff;
+            position: relative;
+        }
+
+        #canvas_button1,
+        #canvas_button2 {
+            border-radius: 8px;
+            box-shadow: unset;
+
+        }
+
+        #canvas_button2 {
+            position: relative;
+            left: -40px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <canvas id="canvas_clock" width="500" height="300">
+            当前浏览器不支持canvas元素，请升级或更换浏览器！
+        </canvas>
+
+        <div class="lottery">
+            <canvas id="canvas_lottery" width="400" height="100"></canvas>
+            <div class="lottery-result">恭喜中奖了</div>
+            <button onclick="refreshResult()">再来一次</button>
+        </div>
+
+        <div class="button">
+            <canvas id="canvas_button1" width="180" height="40"></canvas>
+            <canvas id="canvas_button2" width="180" height="40"></canvas>
+
+        </div>
+
+        <canvas id="canvas_move" width="430" height="430"></canvas>
+
+        232323223
+    </div>
+
+    <script>
+        const canvasClock = document.getElementById('canvas_clock')
+        if (canvasClock.getContext) {
+            const ctx = canvasClock.getContext('2d')
+
+            setInterval(() => {
+                ctx.save()
+                ctx.clearRect(0, 0, 600, 600)
+
+                ctx.fillStyle = '#1e80ff'
+                ctx.fillRect(0, 0, 600, 400)
+                ctx.translate(250, 150)// translate 设置中心点
+                ctx.save()
+
+
+                // ctx.beginPath()
+                // ctx.arc(0, 0, 100, 0, 2 * Math.PI);
+                // ctx.stroke()
+                // ctx.closePath()
+
+                ctx.beginPath()
+                ctx.arc(0, 0, 1, 0, 2 * Math.PI)
+                ctx.stroke()
+                ctx.closePath()
+
+
+                let time = new Date()
+                let hour = time.getHours() % 12
+                let min = time.getMinutes()
+                let sec = time.getSeconds()
+
+
+
+
+
+
+
+                ctx.rotate(2 * Math.PI / 12 * hour + 2 * Math.PI / 12 * (min / 60) - Math.PI / 2)
+                ctx.beginPath()
+                ctx.moveTo(-10, 0)
+                ctx.lineTo(60, 0)
+                ctx.lineWidth = 5
+                ctx.strokeStyle = '#fff'
+                ctx.stroke()
+                ctx.closePath()
+                ctx.restore()
+                ctx.save()
+
+
+
+
+
+                // 分    60分 = 360度   1分钟 = 60度    
+
+                ctx.rotate(min * 2 * Math.PI / 60 + 2 * Math.PI / 60 * sec / 60 - Math.PI / 2)
+                ctx.beginPath()
+                ctx.moveTo(-10, 0)
+                ctx.lineTo(80, 0)
+                ctx.lineWidth = 3
+                ctx.strokeStyle = '#fff'
+                ctx.stroke()
+                ctx.closePath()
+                ctx.restore()
+                ctx.save()
+
+                ctx.rotate(2 * Math.PI / 60 * sec - Math.PI / 2)
+                ctx.beginPath()
+                ctx.moveTo(-10, 0)
+                ctx.lineTo(80, 0)
+                ctx.lineWidth = 2
+                ctx.strokeStyle = '#f00'
+                ctx.stroke()
+                ctx.closePath()
+                ctx.restore()
+                ctx.save()
+
+
+                for (let i = 0; i < 60; i++) {
+                    ctx.rotate(2 * Math.PI / 60)
+                    ctx.beginPath()
+                    ctx.moveTo(90, 0)
+                    ctx.lineTo(100, 0)
+                    ctx.strokeStyle = '#fff'
+                    ctx.stroke()
+                    ctx.closePath()
+                }
+                ctx.restore()
+                ctx.save()
+                ctx.lineWidth = 5
+
+                for (let i = 0; i < 12; i++) {
+                    ctx.rotate(2 * Math.PI / 12)
+                    ctx.beginPath()
+                    ctx.moveTo(85, 0)
+                    ctx.lineTo(100, 0)
+                    ctx.strokeStyle = '#fff'
+                    ctx.stroke()
+                    ctx.closePath()
+                }
+
+
+                ctx.restore()
+                ctx.restore()
+            }, 1000)
+
+        } else {
+            console.log('===============')
+        }
+
+
+
+
+        const canvasLottery = document.getElementById('canvas_lottery')
+        const ctx_l = canvasLottery.getContext('2d')
+        let isDraw = false
+        canvasLottery.onmousedown = function () {
+            isDraw = true
+        }
+        // canvasLottery.ontouchstart= function() {
+        //     isDraw = true
+        // }
+        canvasLottery.onmousemove = function (e) {
+            if (isDraw) {
+                const x = e.pageX - canvasLottery.offsetLeft
+                const y = e.pageY - canvasLottery.offsetTop
+                ctx_l.beginPath();
+                ctx_l.globalCompositeOperation = 'destination-out'
+                //CanvasPath.arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean): void
+                ctx_l.stroke
+                ctx_l.arc(e.offsetX, e.offsetY, 15, 0, 2 * Math.PI)
+                ctx_l.fill()
+                ctx_l.closePath();
+
+
+            }
+
+        }
+        document.onmouseup = function () {
+            isDraw = false
+        }
+        function refreshResult() {
+            ctx_l.clearRect(0, 0, 400, 100)
+            ctx_l.restore();
+
+            ctx_l.fillStyle = 'darkgray'
+            ctx_l.fillRect(0, 0, 400, 100)
+            ctx_l.font = '20px 微软雅黑 '
+            ctx_l.textAlign = 'center'
+            ctx_l.fillStyle = '#fff'
+            ctx_l.save();
+            ctx_l.fillText('刮刮卡', 190, 55)
+            const resultLottery = document.getElementsByClassName('lottery-result')[0]
+            const result = ['毛豆y一台', '小米电视机一台', '小米电饭煲', '天猫精灵一台', '购物卡50元', '祝您好运']
+            resultLottery.innerHTML = result[Math.round(Math.random() * 5)]
+        }
+
+
+
+        let isButton1 = true
+        let colorArray = [{
+            main: '#3384E2',
+            text: '#fff'
+
+        }, {
+            main: '#EAF2FC',
+            text: '#000'
+        }]
+
+
+       const canvasButton1 = document.getElementById('canvas_button1')
+       const canvasButton2 = document.getElementById('canvas_button2')
+       canvasButton1.addEventListener('click', () => {
+          isButton1 = true
+          buttonDemo()
+
+       })
+
+        canvasButton2.addEventListener('click', () => {
+          isButton1 = false
+          buttonDemo()
+       })
+
+          buttonDemo()
+
+
+        function buttonDemo() {
+
+            const button1Color = colorArray[Number(!isButton1)]
+            const button2Color = colorArray[Number(isButton1)]
+
+
+            const ctx_button1 = canvasButton1.getContext('2d')
+            ctx_button1.fillStyle = button1Color.main
+            ctx_button1.fillRect(0, 0, 180, 40)
+            ctx_button1.beginPath()
+            ctx_button1.moveTo(180, 0)
+            ctx_button1.lineTo(180, 40)
+            ctx_button1.lineTo(140, 40)
+            ctx_button1.globalCompositeOperation = 'destination-out'
+            ctx_button1.fill()
+            ctx_button1.closePath()
+            ctx_button1.beginPath()
+            ctx_button1.globalCompositeOperation = 'source-over'
+            ctx_button1.font = '16px 微软雅黑'
+            ctx_button1.fillStyle = button1Color.text
+            ctx_button1.textAlign = "center";
+            // 设置垂直对齐方式
+            ctx_button1.textBaseline = "middle";
+            ctx_button1.fillText('按钮一', 86, 20)
+            ctx_button1.closePath()
+
+
+
+
+            const ctx_button2 = canvasButton2.getContext('2d')
+            ctx_button2.beginPath()
+            ctx_button2.globalCompositeOperation = 'source-over'
+            ctx_button2.fillStyle = button2Color.main
+            ctx_button2.fillRect(0, 0, 180, 40)
+            ctx_button2.closePath()
+            ctx_button2.beginPath()
+            ctx_button2.font = '16px 微软雅黑'
+            ctx_button2.fillStyle =  button2Color.text
+            ctx_button2.textAlign = "center";
+            // 设置垂直对齐方式
+            ctx_button2.textBaseline = "middle";
+            ctx_button2.fillText('按钮二', 86, 20)
+            ctx_button2.closePath()
+             ctx_button2.beginPath()
+
+            ctx_button2.moveTo(0, 0)
+            ctx_button2.lineTo(40, 0)
+            ctx_button2.lineTo(0, 40)
+            ctx_button2.globalCompositeOperation = 'destination-out'
+            ctx_button2.fill()
+                        ctx_button2.closePath()
+
+        }
+
+
+
+
+
+
+        const lottery = [
+    {
+        "lottery_id": "6981716980386496552",
+        "lottery_name": "随机矿石",
+        "lottery_type": 1,
+        "lottery_image": "https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/32ed6a7619934144882d841761b63d3c~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "6981716405976743943",
+        "lottery_name": "Bug",
+        "lottery_type": 2,
+        "lottery_image": "https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "6981655973911855145",
+        "lottery_name": "随机限量徽章一枚",
+        "lottery_type": 4,
+        "lottery_image": "https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5a4bcb86e4614b6ea9857c2ee8372076~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image?",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "7152017655623319565",
+        "lottery_name": "「睡眠日」编织袋",
+        "lottery_type": 4,
+        "lottery_image": "https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d000a0408ece46cd9b89250157d342c6~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image?",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "7138663023090073634",
+        "lottery_name": "「解码」棒球帽",
+        "lottery_type": 4,
+        "lottery_image": "https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ffdb6abdc4c0475280108d785cf6ad80~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image?",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "7103338281479176192",
+        "lottery_name": "Click午睡枕",
+        "lottery_type": 3,
+        "lottery_image": "https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8f0ff284106b44aebf7281900d1707bf~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image?",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "7094520991874809870",
+        "lottery_name": "抖音鼠标垫",
+        "lottery_type": 3,
+        "lottery_image": "https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/62c9841ecdea4434802b7b56c8ffcba2~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image?",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "6988025742512619533",
+        "lottery_name": "索尼降噪耳机",
+        "lottery_type": 3,
+        "lottery_image": "https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ef82c2f354b44e91b70e0fcaa6e321f2~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image",
+        "unlock_count": 0
+    },
+    {
+        "lottery_id": "6981696205310918691",
+        "lottery_name": "Switch",
+        "lottery_type": 3,
+        "lottery_image": "https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e5b6cc3eaa4b4dbbb8adfe4c43e1c7a3~tplv-k3u1fbpfcp-no-mark:0:0:0:0.image?",
+        "unlock_count": 0
+    }
+]
+        const move = document.getElementById('canvas_move')
+        const moveCtx = move.getContext('2d')
+        moveCtx.fillStyle = '#ff0000'
+        let step = 20
+        let xPosition = -20
+        let yPosition = -20
+        let lineNumber = 0
+        moveCtx.beginPath()
+        moveCtx.fillStyle = '#e37815'
+        moveCtx.fillRect(0, 0, 419, 344)
+        moveCtx.closePath()
+
+        for (let i = 0; i < 3; i++) { // 对应 Y 轴
+            for (let j = 0; j < 3; j++) { // 对应 X 轴
+                 moveCtx.beginPath()
+                 moveCtx.fillStyle = '#fdf3f3'
+                 moveCtx.fillRect(j * 125 + j * 6 + 16, i * 100 + 16 + i * 6, 125, 100, 5)
+                 moveCtx.closePath()
+            }
+        }
+
+        
+
+
+
+    //      moveFunc()
+    //     function moveFunc () {
+    //         moveCtx.clearRect(0, 0, 600, 200)
+    //         if (xPosition === 80 || xPosition === 0) {
+    //             lineNumber += 1
+    //             yPosition += 20
+    //         } 
+
+       
+    //         moveCtx.fillRect(xPosition, yPosition, 20, 20)
+    //  if (lineNumber % 2 === 0 && lineNumber > 0) {   
+    //             xPosition -= 20 
+    //         } else {
+    //              xPosition += 20 
+    //         }
+            
+    //         if(yPosition > 100) {
+               
+    //         } else {
+    //              requestAnimationFrame(() => {
+    //                 moveFunc()
+    //             })
+    //         }
+    //     }
+        
+
+    </script>
+
+    <!-- built files will be auto injected -->
+</body>
+
+</html>
