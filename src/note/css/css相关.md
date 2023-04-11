@@ -130,3 +130,42 @@ position:absolute; opacity:0
 占空间隐藏
 visibility:hidden 不可点
 opacity:0  可点
+
+# 7. [column布局](./column%E5%B8%83%E5%B1%80.html)
+
+column-count: 4;
+column-gap: 0;
+
+# 8. 面试水平居中，垂直居中
+水平居中
+
+margin:0 auto + width:fit-content：应用于全部元素
+块级元素 + margin:0 auto + width：应用于块级元素
+若节点不是块级元素需声明display:block
+若节点宽度已隐式声明则无需显式声明width
+行内元素 + text-aligin:center：应用于行内元素
+父节点声明text-align
+若节点不是行内元素需声明display:inline/inline-block
+position + left/right + margin-left/right + width：应用于全部元素
+position + left/right + transform:translateX(-50%)：应用于全部元素
+display:flex + justify-content:center：应用于全部元素的子节点
+
+
+垂直居中
+
+块级元素 + padding-top/bottom：应用于块级元素
+父节点高度未声明或自适应
+若节点不是块级元素需声明display:block
+行内元素 + line-height：应用于行内元素
+父节点声明line-height
+若节点不是行内元素需声明display:inline/inline-block
+display:table + display:table-cell + vertical-align:middle：应用于全部元素
+父节点声明display:table
+子节点声明display:table-cell与vertical-align:middle
+display:table-cell + vertical-align:middle：应用于全部元素的子节点
+position + top/bottom + margin-top/bottom + height：应用于全部元素
+position + top/bottom + transform:translateY(-50%)：应用于全部元素
+display:flex + align-items:center：应用于全部元素的子节点
+display:flex + margin:auto 0：应用于全部元素
+父节点中声明display:flex
+子节点声明margin:auto 0

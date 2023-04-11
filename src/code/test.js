@@ -1,10 +1,9 @@
-function test() {
-    return function (target) {
-        console.log(target)
-    }
-}
+// const map = new Map()
+// const weakmap = new WeakMap()
 
-@test
-class Class {
-
-}
+//     (function () {
+//         const foo = { foo: 1 };
+//         const bar = { bar: 2 };
+//         map.set(foo, 1);
+//         weakmap.set(bar, 2)
+//     })()

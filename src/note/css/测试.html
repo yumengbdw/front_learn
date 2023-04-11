@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            width: 100vh;
+            height: 100vh;
+        }
+
+        .header {
+            height: 80px;
+            flex-shrink: 0;
+        }
+
+        .footer {
+            font-size: 36px;
+            padding: 10px 0;
+            margin: auto;
+            flex-shrink: 0;
+            background-color: #999999;
+        }
+
+        .content {
+            flex-grow: 1;
+            overflow-y: scroll;
+        }
+
+        .odd {
+            height: 50px;
+            background-color: aqua;
+        }
+
+        .even {
+            height: 50px;
+            background-color: blueviolet;
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content-container">
+
+
+        <div class="header">标题</div>
+        <div class="content">
+            <div class="odd"></div>
+            <div class="even"></div>
+            <div class="odd"></div>
+            <div class="even"></div>
+            <div class="odd"></div>
+            <div class="even"></div>
+            <div class="odd"></div>
+            <div class="even"></div>
+            <div class="odd"></div>
+            <div class="even"></div>
+            <div class="odd"></div>
+            <div class="even"></div>
+            <div class="odd"></div>
+            <div class="even"></div>
+            <div class="odd"></div>
+            <div class="even"></div>
+        </div>
+        <div class="footer">我是底部的标题</div>
+    </div>
+</body>
+
+</html>
