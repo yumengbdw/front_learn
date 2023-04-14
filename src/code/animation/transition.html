@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title>过渡动画</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* ------------------过渡动画----------------- */
+        .box-container {
+            position: relative;
+            height: 30px;
+            width: 100%;
+        }
+
+        .box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 30px;
+            width: 30px;
+            background-color: hsl(130, 50%, 50%);
+            transition: all 1s linear;
+            /* transition: background-color, left 1s cubic-bezier(0.45, 0.05, 0.55, 0.95); */
+        }
+
+        .box-container:hover .box {
+            top: 0;
+            height: 30px;
+            left: 400px;
+            background-color: hsl(10, 50%, 50%);
+        }
+
+        /* ------------------过渡动画----------------- */
+
+        /* ------------------过渡动画菜单的使用----------------- */
+
+        .drawer-list {
+            padding-left: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .menu-toggle {
+            padding: 8px 15px;
+            border: 1px solid hsl(280, 10%, 80%);
+            color: hsl(280, 30%, 60%);
+            background-color: white;
+            font: inherit;
+            text-decoration: none;
+            transition: background-color 0.2s linear;
+
+        }
+
+        .menu-toggle:hover {
+            background-color: hsl(280, 15%, 95%);
+        }
+
+        .menu-drawer {
+            /* display: none; */
+            width: 10em;
+            background-color: white;
+            /* opacity: 0; */
+
+            /* visibility: hidden; */
+            /* visibility 0s linear 0.2s, */
+            /* transition: opacity .2s linear, visibility 0s linear 0.2s; */
+
+
+            height: 0;
+            overflow: hidden;
+            transition: height .5s linear 0.2s;
+        }
+
+        .menu:hover .menu-drawer {
+            /* display: block !important; */
+            /* opacity: 1; */
+            height: 500px;
+            /* visibility: visible; */
+        }
+
+        .drawer-list>li+li>a {
+            border-top: 0;
+        }
+
+        .drawer-list>li>a {
+            display: block;
+            padding: 0.5em 1em;
+            color: hsl(280, 40%, 60%);
+            background-color: white;
+            text-decoration: none;
+            transition: all .2s linear;
+            border: 1px solid hsl(280, 10%, 80%);
+        }
+
+        .drawer-list>li>a:hover {
+            background-color: hsl(280, 15%, 95%);
+            color: hsl(280, 25%, 10%);
+        }
+
+        /* ------------------过渡动画菜单的使用----------------- */
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="box-container">
+            <div class="box"></div>
+        </div>
+        <div class="menu">
+            <button class="menu-toggle">menu</button>
+            <div class="menu-drawer">
+                <ul class="drawer-list">
+                    <li role="menuitem">
+                        <a href="/features">Features</a>
+                    </li>
+                    <li role="menuitem">
+                        <a href="/pricing">Pricing</a>
+                    </li>
+                    <li role="menuitem">
+                        <a href="/support">support</a>
+                    </li>
+                    <li role="menuitem">
+                        <a href="/about">about</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+<script></script>
+
+</html>
+
+
+<html lang="en">
