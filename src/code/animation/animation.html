@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title>过渡动画</title>
+    <style>
+        .box {
+            width: 100px;
+            height: 100px;
+            background-color: green;
+            animation: over-and-back 1.5s linear 1;
+        }
+
+        .button-loading {
+            padding: 0.6em 1em;
+            border: 0;
+            background-color: hsl(220, 50%, 50%);
+            color: white;
+            font: inherit;
+            transition: background-color 0.3s linear;
+            position: relative;
+            color: transparent;
+            animation: shake 0.7s linear;
+
+        }
+
+        .button-loading:hover {
+
+            background-color: hsl(220, 45%, 40%);
+        }
+
+        .button-loading::after {
+            position: absolute;
+            content: "";
+            display: block;
+            width: 1.4em;
+            height: 1.4em;
+            top: 50%;
+            left: 50%;
+            margin-left: -0.7em;
+            margin-top: -0.7em;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70% {
+                transform: translateX(-0.4em);
+            }
+
+            20%,
+            40%,
+            60% {
+                transform: translateX(0.4em);
+            }
+
+            80% {
+                transform: translateX(0.3em);
+            }
+
+            80% {
+                transform: translateX(0.3em);
+            }
+        }
+
+        @keyframes over-and-back {
+
+            /* 定义初始化状态 */
+            0% {
+                background-color: hsl(0, 50%, 50%);
+                transform: translate(0);
+            }
+
+            50% {
+                transform: translate(50px);
+            }
+
+            /* 定义最后一个状态 */
+            100% {
+                background-color: hsl(270, 50%, 90%);
+                transform: translate(0);
+            }
+        }
+
+
+
+        /* ------------------过渡动画菜单的使用----------------- */
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="box"></div>
+        <button class="button-loading">按钮</button>
+    </div>
+</body>
+<script></script>
+
+</html>
+
+
+<html lang="en">

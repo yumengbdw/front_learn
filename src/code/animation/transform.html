@@ -9,9 +9,134 @@
     <title>过渡动画</title>
     <style>
         body {
-            background-color: hsl(210, 80%, 20%);
+            /* background-color: hsl(200, 80%, 30%); */
+            background-image: radial-gradient(hsl(197, 7%, 81%),
+                    hsl(209, 33%, 73%));
             font-family: Helvetica, Arial, sans-serif;
+            color: white;
+            font-family: Raleway, Helvetica, Arial, sans-serif;
+            line-height: 1.4;
+            margin: 0;
+            min-height: 100vh;
+        }
 
+        h1,
+        h2,
+        h3 {
+            font-family: Alfa Slab One, serif;
+            font-weight: 400;
+        }
+
+        main {
+            display: block;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        .page-header {
+            margin: 0;
+            padding: 1rem;
+        }
+
+        /* .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+            list-style: none;
+        } */
+
+        .nav-links {
+            display: block;
+            padding: 1em;
+            margin-bottom: 0;
+            margin-top: 0;
+            padding: 0 1rem;
+            list-style: none;
+
+        }
+
+        .nav-links>li+li {
+            margin-left: 0.8em;
+        }
+
+        .nav-links>li>a {
+            display: block;
+            padding: 0.8em 0;
+            color: black;
+            font-size: 0.8rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .nav-links__icon {
+            height: 1.5em;
+            width: 1.5em;
+            vertical-align: -0.2em;
+            color: #ffffff;
+            transition: transform 0.2s linear;
+
+        }
+
+        .nav-links a:hover>.nav-links__icon,
+        .nav-links a:focus>.nav-links__icon {
+            transform: scale(1.5);
+        }
+
+
+        .nav-links>li>a:hover {
+            color: hsl(40, 82%, 59%);
+        }
+
+        .main-nav {
+            position: fixed;
+            top: 8.25em;
+            left: 0;
+            z-index: 10;
+            background-color: transparent;
+            border-top-right-radius: 0.5em;
+            border-bottom-right-radius: 0.5em;
+            transition: background-color .5s linear;
+        }
+
+        .main-nav:hover {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .nav-links__label {
+            display: inline-block;
+            margin-left: 1em;
+            padding-right: 1em;
+            opacity: 0.5;
+            transform: translate(-1em);
+            transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3), opacity 0.4s linear;
+
+        }
+
+        .nav-links a:hover>.nav-links__label,
+        .nav-links a:focus>.nav-links__label {
+            transform: translate(0);
+            opacity: 1;
+        }
+
+        .nav-links>li:nth-child(2) .nav-links__label {
+            transition-delay: 0.1s;
+        }
+
+        .nav-links>li:nth-child(3) .nav-links__label {
+            transition-delay: 0.2s;
+        }
+
+        .nav-links>li:nth-child(4) .nav-links__label {
+            transition-delay: 0.3s;
+        }
+
+        .nav-links>li:nth-child(5) .nav-links__label {
+            transition-delay: 0.4s;
         }
 
         .container {
@@ -28,13 +153,80 @@
             margin: 0 auto;
             background-color: white;
             max-width: 300px;
-            transform: skew(20deg) rotate(-30deg) scale(0.5) translate(20px, 40px);
+            transform: translate(20px, 40px);
             margin-top: 90px;
+            color: #333333;
+            animation: flyIn 5.6s ease-in;
+        }
+
+        @keyframes flyIn {
+            0% {
+                transform: translateZ(-800px) rotateY(90deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translateZ(-160px) rotateY(80deg);
+                opacity: 1;
+            }
+
+            0% {
+                transform: translateZ(0) rotateY(0);
+            }
         }
     </style>
 </head>
 
 <body>
+    <header>
+        <h1 class="page-header">The Yolk Factory</h1>
+    </header>
+    <nav class="main-nav">
+        <ul class="nav-links">
+            <li>
+                <a href="/">
+                    <img src="./icon/1.svg" class="nav-links__icon" />
+                    <span class="nav-links__label">Home</span>
+                </a>
+
+            </li>
+            <li>
+                <a href="/events">
+                    <img src="./icon/2.svg" class="nav-links__icon" />
+                    <span class="nav-links__label">events</span>
+                </a>
+
+            </li>
+
+            <li>
+                <a href="/members">
+                    <img src="./icon/3.svg" class="nav-links__icon" />
+                    <span class="nav-links__label">members</span>
+                </a>
+
+            </li>
+
+            <li>
+                <a href="/about">
+                    <img src="./icon/4.svg" class="nav-links__icon" />
+                    <span class="nav-links__label">members</span>
+                </a>
+
+            </li>
+        </ul>
+    </nav>
+    <div class="card">
+        <img src="./logo.png" alt="a chicken" />
+        <h4>Mrs. Featherstone</h4>
+        <p> She may be a bit frumpy, but Mrs Featherstone gets the job done. She
+            lays her largish cream-colored eggs on a daily basis. She is gregarious
+            to a fault.</p>
+        <p>This Austra White is our most prolific producer.</p>
+    </div>
+</body>
+
+
+<!-- 
     <div class="container">
         <div class="card">
             <img src="./logo.png" alt="a chicken" />
@@ -45,7 +237,7 @@
             <p>This Austra White is our most prolific producer.</p>
         </div>
     </div>
-</body>
+</body> -->
 <script></script>
 
 </html>

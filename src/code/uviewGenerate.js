@@ -1,13 +1,56 @@
 // const beautify = require('js-beautify').js
 const fs = require('fs');
 
-const generateArray = [{ label: '提货车辆', type: 'select', key: 'truckNo' },
-{ label: '物流单号', type: 'input', key: 'tmsTlaskNo' },
-{ label: '物流状态', type: 'select', key: 'billState' },
-{ label: '更新时间', type: 'datetime', key: 'updateTime' },
-{ label: '装货地址', type: 'input', key: 'loadingAddress' },
-{ label: '卸货地址', type: 'input', key: 'unloadingAddress' },
-{ label: '货物信息', type: 'choose', key: 'detailId' },
+const generateArray = [
+	{ label: '货物类型', type: 'radio', key: 'sheetType', options: [{ name: '2', label: '现货在仓' }, { name: '3', label: '预售' }] },
+	{ label: '货物存放仓', type: 'radio', key: 'warehouseType', options: [{ name: '0', label: '平台仓监管' }, { name: '1', label: '第三方仓库货物' }] },
+	{ label: '品种', type: 'select', key: 'productId' },
+
+
+	{ label: '待售货物', type: 'choose', key: 'summaryId' },
+	{ label: '货物中文名', type: 'input', key: 'name' },
+	{ label: '货物英文名', type: 'input', key: 'enName' },
+	{ label: 'sku', type: 'input', key: 'sku' },
+
+
+	//基本信息
+	{ label: '单价', type: 'input', key: 'unitPrice' },
+	{ label: '重量', type: 'input', key: 'avaliableQuantity' },
+	{ label: '单位', type: 'input', key: 'unitName' },
+	{ label: '毛重', type: 'input', key: 'grossWeight' },
+	{ label: '净重', type: 'input', key: 'netWeight' },
+	{ label: '规格', type: 'input', key: 'spec' },
+	{ label: '品牌', type: 'input', key: 'brand' },
+	{ label: '原产国', type: 'input', key: 'productionCountry' },
+	{ label: '有效期天数', type: 'input', key: 'expiryDays' },
+	// ProductPropForm
+
+	// 其他信息
+	{ label: '箱规', type: 'input', key: 'boxQuantity' },
+	{ label: '长', type: 'input', key: 'length' },
+	{ label: '宽', type: 'input', key: 'width' },
+	{ label: '高', type: 'input', key: 'height' },
+	{ label: '货物图片', type: 'select', key: 'picture' },
+
+	{ label: '货物状态', type: 'select', key: 'goodsStatus' },
+	{ label: '货物名称', type: 'input', key: 'name' },
+
+
+
+	//地理信息  3
+	{ label: '面积(m²)', type: 'input', key: 'area' },
+	{ label: '地块经纬度', type: 'input', key: 'longitudeAndLatitude' },
+	{ label: '补充文件', type: 'select', key: 'annex' },
+	{ label: '货物图片', type: 'select', key: 'picture' },
+
+	// 预计生产信息  3
+	{ label: '重量', type: 'input', key: 'avaliableQuantity' },
+	{ label: '单价', type: 'input', key: 'unitPrice' },
+
+	// sheetType 2  warehouseType 1  第三方
+	{ label: '仓库', type: 'input', key: 'whId' },
+	{ label: '仓库地址', type: 'input', key: 'whIdAddress' },
+	{ label: '补充文件', type: 'select', key: 'annex' },
 ]
 
 
