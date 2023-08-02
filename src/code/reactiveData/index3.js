@@ -40,6 +40,7 @@ function cleanup(effectFn) {
 }
 
 
+
 let effectFuncList = new WeakMap()
 const data = { text: 'hello world', ok: true }
 const obj = new Proxy(data, {
