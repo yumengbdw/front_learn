@@ -169,3 +169,52 @@ display:flex + align-items:center：应用于全部元素的子节点
 display:flex + margin:auto 0：应用于全部元素
 父节点中声明display:flex
 子节点声明margin:auto 0
+
+
+
+
+# 9.基础
+
+A>B表示在A的一级子元素中查找B
+
+A B表示在A的内部查找B（查找范围不仅包括子元素，还包括孙元素等）
+
+A+B表示与A相邻的B元素（平级关系，非父子关系）
+
+这里的 A 和 B 代表的是选择器，选择器可以嵌套使用。
+
+A.B，不表示相对关系，它表示类型是A，class名是B的元素，这个要注意。
+
+```html
+<textarea name="text" class="form-control">
+  <div class="OwO">
+    <svg></svg>
+  </div>
+</textarea>
+
+
+document.querySelector('textarea.form-control[name=text]+div.OwO>.OwO-logo svg');
+
+
+```
+
+DOM.innerText 和textContent 的区别在于innerText会去掉多余的换行符
+DOM.style，获取DOM元素的内联CSS样式
+DOM.style.[css名称] = 'xxx'，修改DOM元素的特定CSS属性为xxx
+DOM.style.cssText = 'aaa: xxx;'，直接修改DOM元素的内联CSS文本，可以一次设置多个CSS
+
+```
+h1.style.cssText = "color: red"
+
+```
+
+
+appendChild会将新插入的对象放在所有子元素的末尾
+
+insertBefore可以指定新插入的对象的位置
+
+DOM.remove() 删除
+
+
+
+

@@ -1,6 +1,14 @@
+# 手写promise
+## promise规范
+- 状态 fulfilled pending rejected
+- then方法
+   >then(onFulfilled, onRejected) 参数两个回调。2. then可以多次调用 3. then返回promise对象
+完整代码进myPromise.js
 
-- 实现promise.all方法
-> 传一个数组进去,全部成功才会到then 否则都是到catche
+
+
+- ###  实现promise.all方法
+> 传一个数组进去,全部成功才会到then 否则都是到cache
 
 调用
 ```javascript
@@ -11,6 +19,8 @@ Promise.all([p1,p2,p3]).then((res => {
 })
 
 ```
+
+
 
 实现
 ```javascript
@@ -29,7 +39,7 @@ Promise.all = function (promiseArray) {
 }
 ```
 
-- Promise.race 的实现
+- ### Promise.race 的实现
 > race 赛跑, 任意一个promise状态结束就返回,成功或者失败
 > 
 使用
@@ -47,10 +57,21 @@ Promise.race = function (promiseArray) {
 }
 ```
 
-- Promise.any  的实现
+- ### Promise.any  的实现
 > 只有一个成功就成功,所有失败才失败. 就是promise.all的resole和reject逻辑互换
-
-- Promise.allSettled
+new Promise((resolve, reject) => {
+  promiseArray.forEach((value, index) => {
+    Promise.resolve(value).then(result => {
+      resolve(result)
+    },(err) => {
+      array[index] = err
+      if(array.length === promiseArray.length) {
+        resolve(array)
+      }
+    })
+  })
+})
+- ### Promise.allSettled
 >  相当于all和any 的结合,所有的都走完了才会回调,也就是允许中间可能有失败
 
 ```javascript
