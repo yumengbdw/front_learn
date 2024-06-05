@@ -983,6 +983,76 @@ eval 因为没法分析内容，所以直接调用会把整个作用域打包（
 
 ### 函数式编程
 
+纯函数  相同输入，想通输出。 可缓存，可移植， 可测试
+可以实现可缓存函数。
+```js
+const memorize = function(f){
+    const cache= {}
+    return function (){
+        const arg_str = JSON.stringify(arguments)
+        cache[args_str] = cache[args_str] || f.apply(f, arguments)
+
+        return cache[args_str]
+    }
+}
+
+
+const squareNumber = memorize(function(x) return x*x)
+
+squareNumber(1)
+squareNumber(2)
+squareNumber(2)
+
+```
+
+
+
+#### 柯里化
+使用多个参数的函数转化为使用单个函数的技巧
+
+面试题
+
+```js
+function fn(a,b,c,d,e){
+    console.log(a,b,c,d,e)
+}
+
+let fn = curry(fn)
+
+_fn(1,2,3,4,5)
+等价于
+_fn(1,2)(3,4)(5)
+
+
+```
+
+
+实现函数的柯里化
+
+```js
+
+function curry(fn){
+    return function curryFn(){
+        var args = Array.prototype.slice.call(arguments)
+        if(args.length < fn.length){
+            return function (){
+                  var args2 = Array.prototype.slice.call(arguments)
+                  return curryFn(args.concat(args2))
+            }
+        }
+        return fn.apply(null, args)
+    }
+}
+
+
+```
+
+
+#### 代码组合
+
+
+
+
 高阶函数 接收一个或多个函数作为参数并返回一个新函
 
 
@@ -1135,6 +1205,8 @@ toString 仍旧没找到，
 
 所以继承关系的描述实际上实例不停地调用__proto__ 找到对应的所有继承对象的原型prototype
 #### 继承
+
+// TODO 继承的几种方式？？？？？
 
 ```js
 const obj1 = {
@@ -1411,4 +1483,30 @@ let path = match(3) // file
 为了让类可迭代，必须实现一个名为Symbol.iterator的方法。 这个方法必须返回一个迭代器对象，该对象有一个next()方法。而 这个next()方法必须返回一个迭代结果对象，该对象有一个value属 性和/或一个布尔值done属性。
 
 
+
+
+
+
+
+## ES6和ESNext
+
+var无法形成词法作用域（变量提升），容易篡改
+
+let 块级作用域的局部变量，代码块内部有效
+
+const 块级作用域的只读常量
+
+声明避免修改的对象`Object.freeze`
+```js
+const user = {
+    name: "张三",
+    age: 18,
+    gender: "男"
+};
+
+Object.freeze(user);
+user.age = 20;
+console.log(user); // { name: "李四", age: 18, gender: "男" }
+
+```
 
