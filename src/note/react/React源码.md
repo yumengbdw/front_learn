@@ -133,7 +133,8 @@ console.log(this) // <div>hello</div>
 
 ```
 
-render 方法做了合法性校验，然后就是就是 legacyRenderSubtreeIntoContainer 的调用
+`render` 方法做了合法性校验后直接调用了 `legacyRenderSubtreeIntoContainer`方法
+
 `render` ---> `legacyRenderSubtreeIntoContainer`
 
 legacyRenderSubtreeIntoContainer 方法
@@ -395,7 +396,7 @@ function createRootImpl(
 
 `createRootImpl`方法返回`root = createContainer(...);` `createContainer`返回的是`FiberRoot`
 
-也就是 this.\_internalRoot = FiberRoot
+也就是 `this._internalRoot = FiberRoot`
 
 ` this._internalRoot =  createRootImpl(container, tag, options);`
 
@@ -2154,6 +2155,12 @@ function finishClassComponent(
 ```
 
 ##### 总结
+
+主要两个方法 updateHostComponent 和 updateClassComponent
+
+updateClassComponent 最终会将 nextChildren 赋值为`nextChildren = instance.render()`
+以满足继续循环构建子 fiber
+updateClassComponent 普通标签 最终会根据类型判断 `nextChildren`是`returnFiber`还是`sibling`
 
 1. 首先是构建 root 标签，传进去的是 root 标签的 fiber，构建完后返回 child 即 render 的第一个参数 App 组件的 fiber，
 2. 传进去 app 组件的 fiber，通过` nextChildren = instance.render();`构建 reconcileChildren 传入 nextChildren 构建 App 组件的 render 方法。里面的 div 组件

@@ -218,6 +218,45 @@ for (var i = 1; i <= 5; i++) {
 
 ## 11. promise async await setTimeout Promise.all Promise.race
 
+```js
+// 1. 排队操作
+// 2. async返回promise对象
+// const g = gen()
+
+// 也就是将generator传进去后用一个函数来处理generator执行过程。
+function generatorToAsync(generator) {
+  return function () {
+    return new Promise((resolve, reject) => {
+      // 当key为down的时候resolve来结束当前的promise否则调用next方法
+      const g = generator();
+      let res;
+      function step(key, args) {
+        try {
+          res = g[key](args);
+        } catch (error) {
+          reject(error);
+        }
+        // 如果执行完了next()函数后当前的状态是done那么就直接结束return的promise
+        //否则继续执行下一个next，即yield
+
+        console.log(res);
+        if (res.done) {
+          resolve(res);
+        } else {
+          // 执行下一个next的时候。
+          Promise.resolve(res.value).then(
+            (val) => step("next", val),
+            (err) => step("reject", val)
+          );
+        }
+      }
+
+      step("next");
+    });
+  };
+}
+```
+
 ## 12. 浏览器垃圾回收机制 内存泄露
 
 ## 13. es6 新特性
@@ -576,7 +615,7 @@ uniqueList.push({
 // =============
 ```
 
-## Service Worker
+## 19. Service Worker
 
 构建渐进式 Web 应用程序
 
@@ -685,3 +724,36 @@ Service Worker 是一种特殊类型的 Worker，它主要用于实现离线体�
 注册 Service Worker
 
 激活
+
+# 其他
+
+## 20. settimeout 浏览器失活的时候停止运行
+
+document.addEventListener('visibilitychange',function(){
+document.visibilityState // 浏览器的状态 hidden 和 visible
+console.log('浏览器失活的监听')
+})
+
+## 21. 判断是不是 promise 考察 promiseA+规范
+
+function isPromise(value){
+return value !== null && (typeof value === 'object' || typeof value === 'function')&& (typeof value.then === 'function')
+}
+
+## 22. 模块化
+
+commonjs 规范
+同步加载模块的，不适合浏览器，会阻塞， 输出的事值的拷贝 esm 是值的引用。
+
+因为只有运行时才能得到这个对象，导致完全没办法在编译时做“静态优化”。
+
+1. node 里面所有 js 都是模块，
+2. 全局变量函数都不会产生污染
+3. 通过 module.exports import 来相互引用模块内容
+
+module.exports{
+functionA, functionB
+}
+
+4. require 导入
+5. 模块是有缓存的第一次导入会缓存后面直接使用缓存

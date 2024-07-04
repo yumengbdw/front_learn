@@ -38,6 +38,7 @@ Symbol.for(t); // 1
 
 ## 3.值的转换
 
+https://juejin.cn/post/6844904117723201544
 js 的基本类型，比较按照值来比较的，存储在栈中。
 String
 Number
@@ -48,7 +49,6 @@ Symbol
 
 注意 typeof null = 'object' 是 js 的一个遗留问题，被认为为 bug null 并不是对象，被认为是一种特殊的原始值
 js 引用类型（数组和对象等）存储在堆内存中，比较是按照引用地址比较的，
-所以 key，value 完全相等的两个对象 a,b 永远不可能相等，引用地址不同。但是值为 1 的两个数字 c， d 比较是相等的。
 
 - 基本类型 ---> 数字，字符串，布尔值，对象
 
@@ -243,7 +243,7 @@ console.log(obj.toString())// ’哈哈哈‘   '[object Object]'
 
 ### JSON.parse(json string, reiver function )
 
-第二个参数 复活 函数 跟 stringify 第二个参数实际上是类似的。
+第二个参数 复合 函数 跟 stringify 第二个参数实际上是类似的。
 
 ```js
 JSON.parse(text, function (key, value) {
@@ -335,10 +335,10 @@ console.log(a, b, c, d, s); // 10 13 16 10 100
 可以使用 in 操作符，或者 hasOwnProperty()、 propertyIsEnumerable()方法测试对象是否含有相应属性，也可以 obj.key !== undefined 来判断。
 
 ·Object.keys()返回对象可枚举自有属性名的数组。不包含不 可枚举属性、继承属性或名字是符号的属性
-·Object.getOwnPropertyNames()与 Object.keys()类似，但也 会返回不可枚举自有属性名的数组，只要它们的名字是字符串。
+·`Object.getOwnPropertyNames()`与 `Object.keys()`类似，但也 会返回不可枚举自有属性名的数组，只要它们的名字是字符串。
 
 ·Object.getOwnPropertySymbols()返回名字是符号（Symbols）的自有属性，无论是否可枚举。
-·Reflect.ownKeys()返回所有属性名，包括可枚举和不可枚举 属性，以及字符串属性和符号属性(Symbols)。
+·`Reflect.ownKeys()`返回所有属性名，包括可枚举和不可枚举 属性，以及字符串属性和符号属性(Symbols)。
 
 ## 数组
 

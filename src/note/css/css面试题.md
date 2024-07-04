@@ -246,3 +246,18 @@ bottom: 0;
 margin: auto;
 text-align: center;
 ```
+
+最小字体 12px
+
+transform:scale(0.5)
+display: inline-block;
+transform-origin: left center;
+
+菜单动画
+
+动画前
+max-height:0
+动画后
+max-height:300px
+
+同样一般设置一个固定高度，高度不够就滑动
