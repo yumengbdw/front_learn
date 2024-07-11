@@ -1368,6 +1368,13 @@ function beginWork(
     didReceiveUpdate = false;
   }
 
+
+// didReceiveUpdate ：这个变量主要证明当前更新是否来源于父级的更新，那么自身并没有更新。比如更新 B 组件，那么 C组件(父组件是B)也会跟着更新，这个情况下 didReceiveUpdate = true。
+
+
+
+
+
   // NoWork 常量 值为0 清空过期时间
   workInProgress.expirationTime = NoWork;
   // 根据当前 Fiber 的类型决定如何构建起子级 Fiber 对象

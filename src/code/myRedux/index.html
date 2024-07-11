@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="increment">+1</button>
+    <span id="box">0</span>
+    <button id="decrement">-1</button>
+    <script src="./myRedux.js"></script>
+    <script src="middlewares/logger.js"></script>
+    <script src="middlewares/thunk.js"></script>
+    <script>
+        function counterReducer(state, action) {
+            switch (action.type) {
+                case "increment":
+                    return state + 1;
+                case "decrement":
+                    return state - 1;
+                default:
+                    return state;
+            }
+        }
+
+        const INCREMENT = 'increment'
+        const DECREMENT = 'decrement'
+
+        const Reducer_Type_Enum = { [INCREMENT]: INCREMENT, [DECREMENT]: DECREMENT }
+
+
+
+        const rootReducer = combineReducers({ counter: counterReducer })
+        const store = createStore(rootReducer, { counter: 0 }, applyMiddleware(logger, thunk))
+
+        const actions = bindActionCreators(Reducer_Type_Enum, store.dispatch);
+
+
+        document.getElementById("increment").onclick = function () {
+            // logger -> thunk -> reducer
+            // store.dispatch({ type: "increment" });
+            actions[INCREMENT]()
+        };
+
+        document.getElementById("decrement").onclick = function () {
+            // store.dispatch({ type: "decrement" });
+            // actions.decrement()
+            actions[DECREMENT]()
+
+        };
+
+
+        store.subscribe(() => {
+            const state = store.getState();
+            document.getElementById("box").innerHTML = state.counter
+
+        })
+
+    </script>
+</body>
+
+</html>

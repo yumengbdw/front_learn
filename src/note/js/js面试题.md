@@ -154,12 +154,18 @@ const 必须要初始值。不能改变指针指向
 ## 8. 有哪些遍历方法区别
 
 forEach 对数据的操作会改变原数组，
-map 不回改变原数组，返回新数组
+map 不改变原数组，返回新数组
 filter
-for...of 获取的是对象的键值 for... in 获取的是对象的键名 ，会遍历对象的整个原型链，返回数组中所有可枚举的属性(性能非常差不推荐使用
+for...of item 为数组的值 遍历数组
+for... in 遍历数组和对象 item 为 key ，会遍历对象的整个原型链，返回数组中所有可枚举的属性(性能非常差不推荐使用
 every 只要有就返回 false some 只有要就返回 true
 find findIndex 返回第一个满足的 item 或者 index
 reduce reduceRight
+
+```js
+for (const [key, value] of Object.entries({ a: 1, b: 2 })) {
+}
+```
 
 ## 9. 原型和原型链
 
@@ -757,3 +763,14 @@ functionA, functionB
 
 4. require 导入
 5. 模块是有缓存的第一次导入会缓存后面直接使用缓存
+
+## 23 ajax
+
+AJAX 不是一种新的编程语言，而是一种使用现有标准的新方法。
+它主要由 HTML/CSS、DOM、JavaScript、XMLHttpRequest 和服务器端语言组成。
+
+AJAX 的核心是“异步”，XMLHttpRequest 对象：通过这个对象与服务器交换数据并更新部分网页内容。
+接收到服务器响应后，可以使用 JavaScript 对 DOM 进行操作，动态地修改 HTML 内容，从而实现不刷新页面也可以更新页面内容
+
+的核心是“异步”，XMLHttpRequest
+open(), send(), 和事件处理如 onreadystatechange
