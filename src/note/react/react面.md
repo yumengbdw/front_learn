@@ -18,6 +18,8 @@ concurrent 模式
 setState 完整的流程
 setState ----> 计算优先级（老版本用 expirationTime ，新版本用 lane ）----> fiber Root 根部 fiber 向下调和子节点 ---> 合并 state，然后触发 render 函数 ----> commit 阶段替换 dom ----执行 callback 函数
 
+合成事件、生命周期钩子函数都为异步执行
+
 React 的事件系统是合成事件，事件执行之前通过 isBatchingEventUpdates=true 打开开关，开启事件批量更新，当该事件结束，再通过 isBatchingEventUpdates = false; 关闭开关，然后在 scheduleUpdateOnFiber 中根据这个开关来确定是否进行批量更新
 
 事件执行是在 dispatchEvent 中，dispatchEvent 会调 dispatchEventForLegacyPluginEventSystem 方法
@@ -345,6 +347,12 @@ function commitLifeCycles(finishedRoot,current,finishedWork){
 
 ```
 
+### 为什么 constructor 里要调用 super 和传递 props？
+
+JavaScript 的限制在构造函数里如果要调用 this，那么提前就要调用 super
+直接调用了 super() ，你仍然可以在 render 和其他方法中访问 this.props
+因为 React 会在构造函数被调用之后，会把 props 赋值给刚刚创建的实例对象
+
 ## v18 的新特性
 
 1. setState 全部批量更新
@@ -375,7 +383,11 @@ function commitLifeCycles(finishedRoot,current,finishedWork){
 3. 虚拟 DOM
    虚拟 DOM 是对真实 DOM 的映射，React 通过新旧虚拟 DOM 对比，得到需要更新的部分，实现数据的增量更新
 
-组合模式: 外层组件包裹内层组件 vue 中 slot 直观反映出 父 -> 子组件的包含关系<Tabs><TabsItem/></TabsItem>
+4. 声明式的 写好一个组件，UI 就展示成什么样 jquery 是命令式操作 dom
+
+5. 其他设计模式
+
+- 组合模式: 外层组件包裹内层组件 vue 中 slot 直观反映出 父 -> 子组件的包含关系<Tabs><TabsItem/></TabsItem>
 
 通过 React.cloneElement 隐式传参，通过 React.Children 访问每一个 item 的 props
 
@@ -390,7 +402,7 @@ function Groups(props) {
 }
 ```
 
-hoc 高阶组件模式
+- hoc 高阶组件模式
 
 提供者模式 Provider
 
@@ -461,7 +473,8 @@ const registrationNameDependencies = {
 
 button Fiber.memoizedProps:{onClick: `组件中我们写的 click 方法`}
 
-completeWork 阶段会对比属性 diffProperties
+completeWork 阶段会对 fiber 创建对应的真是的 dom，挂载在 fiber.stateNode 节点上面， 在执行
+如果是 hostComponent 类型 的 fiber 的时候，都会先走 diffProperties 方法
 
 ```js
 function diffProperties(){
@@ -506,7 +519,7 @@ function dispatchEventForLegacyPluginEventSystem() {
 
 handleTopLevel 中执行 SimpleEventPlugin 形成事件队列（即冒泡的 push，捕获的 unShift 形成的事件数组）
 
-runEventsInBatch 会判断如果有 event.isPropagationStopped()（即 e.stopPropagation） 那么直接 break 跳出循环 后续的事件不再执行
+runEventsInBatch 会判断如果有 event.isPropagationStopped()（即 e.stopPropagation） 那么直接 break 跳出循环 后续的事件不再执行,同时还会 SimpleEventPlugin 中的事件队列遍历后执行
 
 ```js
 function handleTopLevel() {
@@ -526,6 +539,31 @@ function handleTopLevel() {
   }
   /* 执行事件处理函数 */
   runEventsInBatch(events);
+}
+```
+
+```js
+
+function runEventsInBatch(){
+    const dispatchListeners = event._dispatchListeners;
+    const dispatchInstances = event._dispatchInstances;
+    if (Array.isArray(dispatchListeners)) {
+    for (let i = 0; i < dispatchListeners.length; i++) {
+      if (event.isPropagationStopped()) { /* 判断是否已经阻止事件冒泡 */
+        break;
+      }
+
+      dispatchListeners[i](event)
+    }
+  }
+  /* 执行完函数，置空两字段 */
+  event._dispatchListeners = null;
+  event._dispatchInstances = null;
+}
+
+
+handerClick(e){
+    e.preventDefault()
 }
 ```
 
@@ -629,7 +667,7 @@ export class App extends React.Component {
 异步代码错误：例如，setTimeout 或 requestAnimationFrame 回调函数中的错误，或者异步请求（如使用 fetch 或 axios 发起的 HTTP 请求）的处理中抛出的错误。
 服务端渲染
 
-## redux 原理 react-router 原理
+## redux 原理 react-router 原理 mobx
 
 Redux 工作原理
 
@@ -738,9 +776,205 @@ const CompBMapStateToProps = (state) => ({ compAsay: state.info.compAsay });
 export const CompB = connect(CompBMapStateToProps)(ComponentB);
 ```
 
+#### react-redux 原理
+
 源码 code/myRedux 目录
 
+#### react-redux 中 connect 实现原理
+
 ### react-mox
+
+不依赖于 React 本身
+
+1. 初始化：首先就是 mobx 在初始化的时候，是如何处理 observable 可观察属性的。
+2. 依赖收集：第二点就是通过 mobx-react 中的 observer ，如何收集依赖项，与 observable 建立起关系的。
+3. 派发更新：最后就是当改变可观察属性的值的时
+
+#### 初始化
+
+被 observable 装饰器包装的属性，本质上就是调用 createObservable 方法。
+
+```js
+function createObservable(target, name, descriptor) {
+  // 对于如上DEMO1，target——Root类，name——属性名称 authorInfo 或者 name ，descriptor——属性描述，枚举性，可读性等
+  if (isStringish(name)) {
+    /* 装饰器模式下 */
+    target[Symbol("mobx-stored-annotations")][name] = {
+      /* 向类的mobx-stored-annotations属性的name属性上，绑定 annotationType_ ， extend_ 等方法。 */
+      annotationType_: "observable", //这个标签证明是 observable，除了observable，还有 action， computed 等。
+      options_: null,
+      make_, // 这个方法在类组件 makeObservable 会被激活
+      extend_, // 这个方法在类组件 makeObservable 会被激活
+    };
+  }
+}
+
+function make_(adm, key, descriptor) {
+  return this.extend_(adm, key, descriptor);
+}
+function extend_(adm, key, descriptor) {
+  return adm.defineObservableProperty_(key, descriptor, options);
+}
+```
+
+当调用 observable 配置项的 make* ，本质上调用 adm.defineObservableProperty*
+
+必须在类的 `constructor` 中调用`makeObservable(this)` 才能建立响应式
+
+```js
+function makeObservable (target){ // target 模块实例——this
+    const adm = new ObservableObjectAdministration(target) /* 创建一个管理者——这个管理者是最上层的管理者，管理模块下的observable属性 */
+    target[Symbol("mobx administration")] = adm  /* 将管理者 adm 和 class 实例建立起关联 */
+    startBatch()
+    try{
+        let annotations = target[Symbol("mobx-stored-annotations"] /* 上面第一步说到，获取状态 */
+        Reflect.ownKeys(annotations)  /* 得到每个状态名称 */
+        .forEach(key => adm.make_(key, annotations[key])) /* 对每个属性调用 */
+    }finally{
+        endBatch()
+    }
+}
+
+```
+
+遍历所有的属性，每个属性通过 adm 管理者调用`make_`处理即`defineObservableProperty_`
+
+```js
+
+class ObservableObjectAdministration{
+    constructor(target_,values_){
+        this.target_ = target_
+        this.values_ = new Map() //存放每一个属性的ObserverValue。
+    }
+    /* 调用 ObserverValue的 get —— 收集依赖  */
+    getObservablePropValue_(key){
+        return this.values_.get(key)!.get()
+    }
+    /* 调用 ObserverValue的 setNewValue_   */
+    setObservablePropValue_(key,newValue){
+        const observable = this.values_.get(key)
+        observable.setNewValue_(newValue) /* 设置新值 */
+    }
+    make_(key,annotation){ // annotation 为每个observable对应的配置项的内容，{ make_,extends }
+        const outcome = annotation.make_(this, key, descriptor, source)
+    }
+    /* 这个函数很重要，用于劫持对象上的get,set */
+    defineObservableProperty_(key,value){
+        try{
+            startBatch()
+            const descriptor = {
+                get(){      // 当我们引用对象下的属性，实际上触发的是 getObservablePropValue_
+                   this.getObservablePropValue_(key)
+                },
+                set(value){ // 当我们改变对象下的属性，实际上触发的是 setObservablePropValue_
+                   this.setObservablePropValue_(key,value)
+                }
+            }
+            Object.defineProperty(this.target_, key , descriptor)
+            const observable = new ObservableValue(value) // 创建一个 ObservableValue
+            this.values_.set(key, observable)             // 设置observable到value中
+        }finally{
+            endBatch()
+        }
+    }
+}
+
+```
+
+ObservableValue 继承了 Atom。
+
+```js
+class ObservableValue extends Atom {
+  get() {
+    //adm.getObservablePropValue_ 被调用
+    this.reportObserved(); // 调用Atom中 reportObserved
+    return this.dehanceValue(this.value_);
+  }
+  setNewValue_(newValue) {
+    // adm.setObservablePropValue_
+    const oldValue = this.value_;
+    this.value_ = newValue;
+    this.reportChanged(); // 调用Atom中reportChanged
+  }
+}
+
+class Atom {
+  observers_ = new Set(); /* 存放每个组件的 */
+  /* value改变，通知更新 */
+  reportChanged() {
+    startBatch();
+    propagateChanged(this);
+    endBatch();
+  }
+  /* 收集依赖 */
+  reportObserved() {
+    return reportObserved(this);
+  }
+}
+```
+
+关键 代码 组件的`@observe` 装饰器怎么做的
+
+```js
+function observer(componentClass) {
+  /* componentClass 是类组件的情况 (函数组件我们暂且忽略) */
+  return function makeClassComponentObserver() {
+    const target = componentClass.prototype;
+    const baseRender = target.render; /* 这个是原来组件的render */
+    /* 劫持render函数 */
+    target.render = function () {
+      return makeComponentReactive.call(this, baseRender);
+    };
+  };
+}
+```
+
+劫持了 render 方法来收集组件中的依赖项
+
+```js
+
+function makeComponentReactive(){
+    const baseRender = render.bind(this) // baseRender为真正的render方法
+     /* 创建一个反应器，绑定类组件的更新函数 —— forceUpdate  */
+     const reaction = new Reaction(`${initialName}.render()`,()=>{
+          Component.prototype.forceUpdate.call(this) /* forceUpdate 为类组件更新函数 */
+     })
+    reaction["reactComponent"] = this    /* Reaction 和 组件实例建立起关联 */
+    reactiveRender["$mobx"] = reaction
+    this.render = reactiveRender
+    function reactiveRender() { /* 改造的响应式render方法 */
+        reaction.track(() => {  // track中进行真正的依赖收集
+            try {
+                rendering = baseRender() /* 执行更新函数 */
+            }
+        })
+        return rendering
+    }
+    return reactiveRender.call(this)
+}
+
+```
+
+注入模块通过 provider inject 完成
+
+@inject 作用就是将 store 中的状态 中混入 props 中。
+
+newProps[storeName] = context[storeName]
+
+每一个组件会创建一个 Reaction，Reaction 第二个参数就是 forceUpdate
+对 render 函数进行改造，改造成 reactiveRender ，在 reactiveRender 中，reaction.track 是真正的进行依赖的收集，track 回调函数中，执行真正的 render 方法，得到 element 对象 rendering 。
+
+get 值的时候 reaction 中添加 observable，
+
+上面 reaction.track 方法执行的时候会 observable 中添加 reaction
+
+当属性改变的时候会走劫持的 set 方法，set 方法即`setObservablePropValue_`最终会调` Reaction.onBecomeStale_()`
+这个方法会开启调度更新，最终触发 new reaction 的时候传入的第二个回调函数即 forceUpdate 方法
+
+Mobx 上手简单， Redux 复杂
+redux 数据流向规范简单，mobx 数据依赖于 Proxy， Object.defineProperty 等，劫持属性 get ，set ，数据变化多样化，允许数据冗余  
+Redux 可拓展性比较强，可以通过中间件自定义增强 dispatch 。
+基本有一个 store ，统一管理 store 下的状态，在 mobx 中可以有多个模块，可以理解每一个模块都是一个 store ，相互之间是独立的。
 
 ## react 组件的通讯方式
 
@@ -749,6 +983,344 @@ props callback
 Context.Consumer ， Context.provider
 redux
 事件冒泡和捕获
+
+## react 优化之控制渲染
+
+### memo，PureComponent， shouldComponentUpdate， React.memo
+
+react 控制 render 的方式 经典的就是 memo，缓存 element 对象。 组件从自身来控制：PureComponent ，shouldComponentUpdate 。
+
+```js
+{
+  useMemo(() => <Children number={numberA} />, [numberA]);
+}
+```
+
+其他值改变 children 会从缓存中读取，numberA 改变重新生成新的 element
+
+第一个参数 create 回调函数的缓存值绑定在函数组件对应的 fiber 对象上，只有第二个参数 deps 改变才会替换
+
+通过 createElement 生成 element 会产生一个新的 props，这个 props 将作为对应 fiber 的 pendingProps ，在此 fiber 更新调和阶段，React 会对比 fiber 上老 oldProps 和新的 newProp （ pendingProps ）是否相等，如果相等函数组件就会放弃子组件的调和更新，从而子组件不会重新渲染；
+
+PureComponent： 浅比较 state 和 props 是否相等
+
+React.memo
+
+```js
+React.memo(Component, compare);
+```
+
+compare 是一个函数，返回 true 不更新，false 更新和 shouldComponentUpdate 相反，compare 不存在时，会用浅比较原则处理 props
+
+```js
+const controlIsRender = (pre, next) => {
+  return (
+    pre.number === next.number ||
+    (pre.number !== next.number && next.number > 5)
+  ); // number不改变或number 改变但值大于5->不渲染组件 | 否则渲染组件
+};
+const NewTexMemo = memo(TextMemo, controlIsRender);
+
+class Index extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      number: 1,
+      num: 1,
+    };
+  }
+  render() {
+    const { num, number } = this.state;
+    return (
+      <div>
+        <button onClick={() => this.setState({ number: number + 1 })}>
+          number++
+        </button>
+        <button onClick={() => this.setState({ num: num + 1 })}>num++</button>
+
+        <NewTexMemo num={num} number={number} />
+      </div>
+    );
+  }
+}
+```
+
+#### immutable.js
+
+老的 api 都是突变
+sort splice push pop 数据突变
+
+新的 api 不可变
+map filter reduce slice 都是数据不可变，操作后原数组不变
+但是都是浅拷贝的
+
+array = [{name: 'ddd'}] 这种包了一层的都是突变的
+
+redux 要求全局装填不可变，本地组件状态不可变
+
+immutable.js
+**提供数据共享的特性，能够快速差异比较，使得组件更加智能的渲染**
+
+list
+map
+
+api：
+fromJS 把深层嵌套的 map 都变成 immutable.js 的 map 结构，相当于深层都是不可变的
+
+is 判断对象是否直观的相等,js 里面比较的是地址。
+
+应用：
+当调用 setState 的时候即使传入的数据一样也会 diff ，js 是引用地址比较
+react 中采用的 pureComponent 浅比较数据结构比较复杂的时候依然会存在无效 diff
+
+formJS 包裹 state， is 判断是否相等，get 方法取 name 的值
+
+```js
+import { fromJS, is } from "immutable";
+import { Component } from "react";
+
+class MyComponent extends Component {
+  constructor() {
+    super();
+    this.state = {
+      person: formJS({ name: "zhangsan" }),
+    };
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (!is(this.state.person, nextState.person)) {
+      return true;
+    }
+    return false;
+  }
+}
+
+render(){
+  return (
+
+    <div>{this.state.person.get("name")}</div>
+  )
+}
+```
+
+另外和 redux 一起使用。
+
+redux 本身数据就是用的不可变数据
+
+```js
+const initialState = fromJS({ count: 0 });
+
+function numberReducer(state = initialState, action) {
+  switch (action.type) {
+    case "ADD":
+      return state.set("count", count + 1);
+    case "DEL":
+      return state.set("count", count - 1);
+    default:
+      return state;
+  }
+}
+
+
+
+获取的时候也是`state.get('count')` 的形式
+```
+
+### 懒加载异步渲染
+
+1. Suspense
+   v18 Suspense 在 UserInfo 请求数据成功后才会渲染。
+
+```js
+<Suspense fallback={<h1>Loading...</h1>}>
+  <UserInfo />
+</Suspense>
+```
+
+传统模式：挂载组件-> 请求数据 -> 再渲染组件。
+异步模式：请求数据-> 渲染组件。
+
+2. React.lazy
+
+```js
+const LazyComponent = React.lazy(() => import("./text"));
+
+<Suspense fallback={<div>loading...</div>}>
+  <LazyComponent />
+</Suspense>;
+```
+
+## React SSR
+
+仅仅 SEO 的话就可以用 preRender 库
+
+CSR client side render
+SSR server side render
+
+服务端直接返回 html
+
+next
+nuxt
+
+## 函数组件和类组件区别
+
+### 判断组件是 class 组件还是 function 组件
+
+```js
+ClassComponent.prototype.isReactComponent; // {}
+FunctionComponent.prototype.isReactComponent; // undefined
+```
+
+## React Hooks
+
+### 为什么要有 hooks
+
+函数组件交互就有状态的改变，React 是通过 setState 来改变状态。但 setState 是类组件中的 API，还有生命周期之类的
+在函数式组件中，是没有状态的，一般当做渲染（无状态组件）
+
+官网描述的 hooks 动机
+
+> 在组件之间复用状态逻辑很难
+> 复杂组件变得难以理解
+> 难以理解的 class
+
+所以 Hook 解决的是
+
+1. 无 Class 的复杂性 ，没有生命周期的困扰
+2. 优雅地复用
+3. 具有 Class 组件已经具备的能力 可以处理一些副作用，能获取 ref ，也能做数据缓存。
+
+class 组件缺点
+
+1. 代码量多
+2. 状态逻辑难以复用，复用只能通过 render props（渲染属性）或者 HOC（高阶组件），但无论时渲染属性还是高阶组件，都会在原先的组件外包裹一层父容器（一般都是 div 元素），导致层级冗余
+
+### Hoc
+
+创建一个函数，接收一个组件或其他的参数作为输入返回一个不同的组件
+由于嵌套，使得调试难度变高
+
+```js
+function Wrapper(Component1) {
+  return new Component2();
+}
+```
+
+### Hooks 的本质是什么？为什么？ Hooks 的原理
+
+hooks 本质是闭包
+
+Hooks 主要是利用闭包来保存状态，使用链表保存一系列 Hooks，将链表中的第一个 Hook 与 Fiber 关联。在 Fiber 树更新时，就能从 Hooks 中计算出最终输出的状态和执行相关的副作用
+
+### 为什么不能在 for 循环、if 语句里使用 hooks？
+
+存 Hooks 状态的对象是以单链表的形式储存状态，如果用循环、条件或者嵌套函数等方式使用 Hooks，会破坏 Hooks 的调用顺序
+
+`fiber.memorizedstate(hook@)-> next(hook1)-> next(hook2)->next(hook3)->next(hook4)->...`
+
+单链表的每个 Hook 节点没有名字或者 key，因为除了它们的顺序，我们无法记录它们的唯一性。因为为了确保某个 Hook 是它本身，我们不能破坏这个链表的稳定性
+
+### Hooks 和 hoc 的区别，为什么不用 hoc
+
+render props 和 高阶组件只渲染一个子节点。我们认为让 Hook 来服务这个使用场景更加简单。
+hoc 的缺点是会有嵌套、props 会被劫持，容易出现冲突，Hooks 没有个问题
+
+### 特殊 hooks 的作用
+
+React.memo、React.useCallback、React.usememo 的作用
+
+#### useMemo，useCallback 的区别
+
+#### useEffect(fn, []) 和 componentDidMount 有什么差异
+
+useEffect 会捕获 props 和 state。即使在回调函数里，你拿到的还是初始的 props 和 state。如果你想要得到“最新”的值，你可以使用 ref。不过通常会有更简单的实现方式，所以你并不一定要用 ref。
+
+执行时机不同 ​
+componentDidMount 在组件挂载之后运行。如果立即（同步）设置 state，那么 React 就会触发一次额外的 render，并将第二个 render 的响应作为初始 UI，
+
+useEffect 在 commit 的第一个阶段执行因为 useEffect 在绘制（Paint）之后异步运行。
+
+Props 和 State 的捕获（Capture Value）​
+每次渲染就会捕获新的 props 和 state
+
+### hooks 组件的生命周期
+
+```react
+React.useEffect(()=>{
+    /* 请求数据 ， 事件监听 ， 操纵dom */
+},[])
+dep为空数组就相当于componentDidMount
+
+React.useEffect(()=>{
+    console.log('props变化：componentWillReceiveProps')
+},[ props ])
+
+React.useEffect(()=>{
+    console.log('组件更新完成：componentDidUpdate ')
+}) /* 没有 dep 依赖项 */
+
+```
+
+useLayoutEffect 是在 DOM 更新之后，浏览器绘制之前
+
+useEffect 执行是在浏览器绘制视图之后，
+接下来又改 DOM ，就可能会导致浏览器再次回流和重绘。而且由于两次绘制，视图上可能会造成闪现突兀的效果。
+
+**修改 DOM ，改变布局就用 useLayoutEffect ，其他情况就用 useEffect 。**
+
+react 18 useInsertionEffect 的执行时机要比 useLayoutEffect 提前，useLayoutEffect 执行的时候 DOM 已经更新了，但是在 useInsertionEffect 的执行的时候，DOM 还没有更新。主要是解决 CSS-in-JS 在渲染中注入样式的性能问题。
+
+```js
+function FunctionLifecycle(props) {
+  const [num, setNum] = useState(0);
+  React.useEffect(() => {
+    /* 请求数据 ， 事件监听 ， 操纵dom  ， 增加定时器 ， 延时器 */
+    console.log("组件挂载完成：componentDidMount");
+    return function componentWillUnmount() {
+      /* 解除事件监听器 ，清除 */
+      console.log("组件销毁：componentWillUnmount");
+    };
+  }, []); /* 切记 dep = [] */
+  React.useEffect(() => {
+    console.log("props变化：componentWillReceiveProps");
+  }, [props]);
+  React.useEffect(() => {
+    /*  */
+    console.log(" 组件更新完成：componentDidUpdate ");
+  });
+  return (
+    <div>
+      <div> props : {props.number} </div>
+      <div> states : {num} </div>
+      <button onClick={() => setNum((state) => state + 1)}>改变state</button>
+    </div>
+  );
+}
+
+export default () => {
+  const [number, setNumber] = React.useState(0);
+  const [isRender, setRender] = React.useState(true);
+  return (
+    <div>
+      {isRender && <FunctionLifecycle number={number} />}
+      <button onClick={() => setNumber((state) => state + 1)}>
+        {" "}
+        改变props{" "}
+      </button> <br />
+      <button onClick={() => setRender(false)}>卸载组件</button>
+    </div>
+  );
+};
+```
+
+从 React15 升级为 React16 后，源码改动如此之大，说 React 被重构可能更贴切些。
+正是由于变动如此之大，使得一些特性在新旧版本 React 中表现不一致
+
+为了让开发者能平稳从旧版本迁移到新版本，React 推出了三个模式：
+
+- legacy 模式 -- 通过 ReactDOM.render 创建的应用会开启该模式。这是当前 React 使用的方式。这个模式可能不支持一些新功能。
+- blocking 模式 -- 通过 ReactDOM.createBlockingRoot 创建的应用会开启该模式。开启部分 concurrent 模式特性，作为迁移到 concurrent 模式的第一步。
+- concurrent 模式 -- 通过 ReactDOM.createRoot 创建的应用会开启该模式。面向未来的开发模式。
 
 ## Fiber
 
@@ -925,104 +1497,49 @@ element 和真实 DOM 以及 fiber 关系
 
 ---
 
-react 响应式
 那么 render 的作用是根据一次更新中产生的新状态值，通过 React.createElement ，替换成新的状态，得到新的 React element 对象，新的 element 对象上，保存了最新状态值。 createElement 会产生一个全新的 props。到此 render 函数使命完成了
 
 一次更新中产生的新状态值，通过 React.createElement ，替换成新的状态，得到新的 React element 对象，新的 element 对象上，保存了最新状态值。 createElement 会产生一个全新的 props。接下来，React 会调和由 render 函数产生 chidlren，将子代 element 变成 fiber（这个过程如果存在 alternate，会复用 alternate 进行克隆，如果没有 alternate ，那么将创建一个），将 props 变成 pendingProps ，至此当前组件更新完毕。然后如果 children 是组件，会继续重复上一步，直到全部 fiber 调和完毕。完成 render 阶段。
 
-## react 优化之控制渲染
+## react 15 和 16 的改进。
 
-### memo，PureComponent， shouldComponentUpdate， React.memo
+reconcile
 
-react 控制 render 的方式 经典的就是 memo，缓存 element 对象。 组件从自身来控制：PureComponent ，shouldComponentUpdate 。
+render
 
-```js
-{
-  useMemo(() => <Children number={numberA} />, [numberA]);
-}
-```
+增加了
 
-其他值改变 children 会从缓存中读取，numberA 改变重新生成新的 element
+Scheduler 分配优先级 15 没有，
+Reconcile 采用的 fiber 结构异步可中断更新，15 中采用 Stack reconciler（堆栈协调器），递归更新，同步且不可中断
 
-第一个参数 create 回调函数的缓存值绑定在函数组件对应的 fiber 对象上，只有第二个参数 deps 改变才会替换
+element 标记就是`$$typeof: REACT_ELEMENT_TYPE`(Symbol)表示该对象是个 React Element
 
-通过 createElement 生成 element 会产生一个新的 props，这个 props 将作为对应 fiber 的 pendingProps ，在此 fiber 更新调和阶段，React 会对比 fiber 上老 oldProps 和新的 newProp （ pendingProps ）是否相等，如果相等函数组件就会放弃子组件的调和更新，从而子组件不会重新渲染；
+之所以用`$$typeof`为了防止 XSS 攻击。因为 JSON 不支持 Symbol 类型，所以服务器通过 JSON 攻击不会影响到 React
 
-PureComponent： 浅比较 state 和 props 是否相等
+React Element + 优先级、打标记等属性和方法 = React Fiber
 
-React.memo
+再看 fiber 解构 alternate stateNode，lanes，childLanes，flags，subtreeFlags， return， child sibling，memoizedProps，updateQueue 基础信息，type tag elementType key 等
 
-```js
-React.memo(Component, compare);
-```
+因为一个更新过程可能被打断，所以 React Fiber 一个更新过程被分为两个阶段（Phase）：第一个阶段 Reconciliation Phase 和 第二阶段 Commit Phase
 
-compare 是一个函数，返回 true 不更新，false 更新和 shouldComponentUpdate 相反，compare 不存在时，会用浅比较原则处理 props
+16ms 即 1 帧做的事情，若超过 16ms 就会感觉到卡
 
-```js
-const controlIsRender = (pre, next) => {
-  return (
-    pre.number === next.number ||
-    (pre.number !== next.number && next.number > 5)
-  ); // number不改变或number 改变但值大于5->不渲染组件 | 否则渲染组件
-};
-const NewTexMemo = memo(TextMemo, controlIsRender);
+- 处理用户的交互
+- JS 解析执行
+- 帧开始。窗口尺寸变更，页面滚动等事件
+- rAF(requestAnimationFrame)
+- 布局
+- 绘制
 
-class Index extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      number: 1,
-      num: 1,
-    };
-  }
-  render() {
-    const { num, number } = this.state;
-    return (
-      <div>
-        <button onClick={() => this.setState({ number: number + 1 })}>
-          number++
-        </button>
-        <button onClick={() => this.setState({ num: num + 1 })}>num++</button>
-
-        <NewTexMemo num={num} number={number} />
-      </div>
-    );
-  }
-}
-```
-
-### 懒加载异步渲染
-
-1. Suspense
-   v18 Suspense 在 UserInfo 请求数据成功后才会渲染。
-
-```js
-<Suspense fallback={<h1>Loading...</h1>}>
-  <UserInfo />
-</Suspense>
-```
-
-传统模式：挂载组件-> 请求数据 -> 再渲染组件。
-异步模式：请求数据-> 渲染组件。
-
-2. React.lazy
-
-```js
-const LazyComponent = React.lazy(() => import("./text"));
-
-<Suspense fallback={<div>loading...</div>}>
-  <LazyComponent />
-</Suspense>;
-```
+因为浏览器是一帧一帧执行的，在两个执行帧之间，主线程通常会有一小段空闲时间，requestIdleCallback 可以在空闲期（Idle Period）调用空闲期回调（Idle Callback），执行一些任务
 
 ## react 响应式
 
 组件 A 更新方式
 
 - 类组件：`setState | forceUpdate`。 函数组件 `useState | useReducer`
-- `props` 改变
-- `context` 的更新
-  本质上都是 state 的变化。 props 改变是父 state 的改变，context 改变来源于 provider 中 value 的改变。而 value 也是 state 的衍生物
+- `props` 改变, 本质是父 state 的改变
+- `context` 的更新， context 改变来源于 provider 中 value 的改变。而 value 也是 state 的衍生物
 
 **fiber 是调和过程中的最小单元，每一个需要调和的 fiber 都会进入 workLoop 中。**
 **而组件是最小的更新单元，React 的更新源于数据层 state 的变化。**
@@ -1055,14 +1572,189 @@ root{A:{B:{C:{D}}}}
 
 !(参考文章)[https://juejin.cn/book/6945998773818490884/section/7023422095514140687?enter_from=course_center&utm_source=course_center]
 
-## React SSR
+## 什么是虚拟 dom
 
-仅仅 SEO 的话就可以用 preRender 库
+官方解释
 
-CSR client side render
-SSR server side render
+> Virtual DOM 是一种编程概念。在这个概念里，UI 以一种理想化的，或者说“虚拟的”表现形式被保存于内存中，并通过如 ReactDOM 等类库使之与“真实的”DOM 同步。这一过程叫做协调.
+> 这种方式赋予了 React 声明式的 API：您告诉 React 希望让 UI 是什么状态，React 就确保 DOM 匹配该状态。这使您可以从属性操作、事件处理和手动 DOM 更新这些在构建应用程序时必要的操作中解放出来 UI = f(data)
 
-服务端直接返回 html
+以 tag attrs children 的形式保存
 
-next
-nuxt
+```js
+
+{
+    "tag": "ul",
+    "attrs": {
+        "id": "list"
+    },
+    "children": [
+    ]
+}
+```
+
+Virtual DOM 就是描述真实 DOM 的一个对象（包括 tag， attrs， children） 是真实 DOM 状态的内存映射，和虚拟 dom 的属性和真是 dom 的 tag 和 props 都一一对应，因此不需要操作 dom 只关注应用装填就可以。
+
+react 优势 1. batching 合并更新，减少渲染次数，提高渲染效率 2. diff 针对变化的 dom 更新。 跨平台性
+
+## React 性能优化
+
+## 十万条数据渲染
+
+### 1. 时间分片
+
+    浏览器执 js 速度要比渲染 DOM 速度快的多, 时间分片。并没有本质减少浏览器的工作量，而是把一次性任务分割开来，给用户一种流畅的体验效果。
+
+随机颜色随机位置一次性显示 20000 条数据出现卡顿的现象。 关键是 toRenderList 方法，分次渲染一次渲染 eachRenderNum 条数据总共渲染 times 次。每次渲染后 index++ 当 index > times 代表渲染完成
+
+```js
+// TODO: 改造方案
+class Index extends React.Component {
+  state = {
+    dataList: [], //数据源列表
+    renderList: [], //渲染列表
+    position: { width: 0, height: 0 }, // 位置信息
+    eachRenderNum: 500, // 每次渲染数量
+  };
+  box = React.createRef();
+  componentDidMount() {
+    const { offsetHeight, offsetWidth } = this.box.current;
+    const originList = new Array(20000).fill(1);
+    const times = Math.ceil(
+      originList.length / this.state.eachRenderNum
+    ); /* 计算需要渲染此次数*/
+    let index = 1;
+    this.setState(
+      {
+        dataList: originList,
+        position: { height: offsetHeight, width: offsetWidth },
+      },
+      () => {
+        this.toRenderList(index, times);
+      }
+    );
+  }
+  toRenderList = (index, times) => {
+    if (index > times) return; /* 如果渲染完成，那么退出 */
+    const { renderList } = this.state;
+    renderList.push(
+      this.renderNewList(index)
+    ); /* 通过缓存element把所有渲染完成的list缓存下来，下一次更新，直接跳过渲染 */
+    this.setState({
+      renderList,
+    });
+    requestIdleCallback(() => {
+      /* 用 requestIdleCallback 代替 setTimeout 浏览器空闲执行下一批渲染 */
+      this.toRenderList(++index, times);
+    });
+  };
+  renderNewList(index) {
+    /* 得到最新的渲染列表 */
+    const { dataList, position, eachRenderNum } = this.state;
+    const list = dataList.slice(
+      (index - 1) * eachRenderNum,
+      index * eachRenderNum
+    );
+    return (
+      <React.Fragment key={index}>
+        {list.map((item, index) => (
+          <Circle key={index} position={position} />
+        ))}
+      </React.Fragment>
+    );
+  }
+  render() {
+    return (
+      <div className="bigData_index" ref={this.box}>
+        {this.state.renderList}
+      </div>
+    );
+  }
+}
+```
+
+### 2. 虚拟列表
+
+在长列表滚动过程中，只有视图区域显示的是真实 DOM ，滚动过程中，不断截取视图的有效区域，让人视觉上感觉列表是在滚动。达到无限滚动的效果。
+
+视图区：视图区就是能够直观看到的列表区，此时的元素都是真实的 DOM 元素。
+缓冲区：缓冲区是为了防止用户上滑或者下滑过程中，出现白屏等效果。（缓冲区和视图区为渲染真实的 DOM ）
+虚拟区：对于用户看不见的区域（除了缓冲区），剩下的区域，不需要渲染真实的 DOM 元素。虚拟列表就是通过这个方式来减少页面上 DOM 元素的数量。
+
+根据 scrollTop 来计算渲染区域向上偏移量, 重新计算 end 和 start 来重新渲染列表。
+
+设置 transform 模拟用户滑动效果。用户向下滑动的时候，可视区域要向上滚动， 用户向上滑动的时候，可视区域要向下滚动。
+
+```js
+function VirtualList() {
+  const [dataList, setDataList] = React.useState([]); /* 保存数据源 */
+  const [position, setPosition] = React.useState([
+    0, 0,
+  ]); /* 截取缓冲区 + 视图区索引 */
+  const scroll = React.useRef(null); /* 获取scroll元素 */
+  const box = React.useRef(null); /* 获取元素用于容器高度 */
+  const context = React.useRef(null); /* 用于移动视图区域，形成滑动效果。 */
+  const scrollInfo = React.useRef({
+    height: 500 /* 容器高度 */,
+    bufferCount: 8 /* 缓冲区个数 */,
+    itemHeight: 60 /* 每一个item高度 */,
+    renderCount: 0 /* 渲染区个数 */,
+  });
+  React.useEffect(() => {
+    const height = box.current.offsetHeight;
+    const { itemHeight, bufferCount } = scrollInfo.current;
+    const renderCount = Math.ceil(height / itemHeight) + bufferCount;
+    scrollInfo.current = { renderCount, height, bufferCount, itemHeight };
+    const dataList = new Array(10000).fill(1).map((item, index) => index + 1);
+    setDataList(dataList);
+    setPosition([0, renderCount]);
+  }, []);
+  const handleScroll = () => {
+    const { scrollTop } = scroll.current;
+    const { itemHeight, renderCount } = scrollInfo.current;
+
+    // 直接使用scrollTop的话，就每触发一次scroll事件就会改变下偏移量，造成滑动与偏移同时产生，所以就不会这么丝滑了。取余操作的话，表示每经过一个元素块变动一次，不会频繁的触发偏移操作
+    const currentOffset = scrollTop - (scrollTop % itemHeight);
+    const start = Math.floor(scrollTop / itemHeight);
+    context.current.style.transform = `translate3d(0, ${currentOffset}px, 0)`; /* 偏移，造成下滑效果 */
+    const end = Math.floor(scrollTop / itemHeight + renderCount + 1);
+    if (end !== position[1] || start !== position[0]) {
+      /* 如果render内容发生改变，那么截取  */
+      setPosition([start, end]);
+    }
+  };
+  const { itemHeight, height } = scrollInfo.current;
+  const [start, end] = position;
+  const renderList = dataList.slice(start, end); /* 渲染区间 */
+  console.log("渲染区间", position);
+  return (
+    <div className="list_box" ref={box}>
+      <div
+        className="scroll_box"
+        style={{ height: height + "px" }}
+        onScroll={handleScroll}
+        ref={scroll}
+      >
+        <div
+          className="scroll_hold"
+          style={{ height: `${dataList.length * itemHeight}px` }}
+        />
+        <div className="context" ref={context}>
+          {renderList.map((item, index) => (
+            <div className="list" key={index}>
+              {" "}
+              {item + ""} Item{" "}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+scroll 事件密集发生，计算量很大，容易造成性能问题
+IntersectionObserver API，可以自动"观察"元素是否可见
+
+所以也可以用 IntersectionObserver 替代 onScroll
+https://fe.azhubaby.com/React/%E9%9D%A2%E8%AF%95%E9%A2%98/%E6%B8%B2%E6%9F%93%E5%8D%81%E4%B8%87%E6%9D%A1%E6%95%B0%E6%8D%AE%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88.html

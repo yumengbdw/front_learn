@@ -115,13 +115,6 @@ Q：React Fiber 如何更新 DOM？
 
 在 React 中最多会同时存在两棵 Fiber 树。当前屏幕上显示内容对应的 Fiber 树称为 current Fiber，正在内存中构建的 Fiber 树称为 workInProgress Fiber，两者通过 alternate 连接
 
-判断组件是 class 组件还是 function 组件
-
-```js
-ClassComponent.prototype.isReactComponent; // {}
-FunctionComponent.prototype.isReactComponent; // undefined
-```
-
 render 阶段
 
 # render 方法
