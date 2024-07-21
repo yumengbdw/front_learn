@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        .parent {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            width: 100%;
+            padding: 20px 0px;
+        }
+
+        .son {
+            width: 25%;
+            height: 0;
+            padding-bottom: 25%;
+            margin-right: 5%;
+            background: linear-gradient(to right, red, orange);
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+
+        .son:nth-child(1) {
+            animation: fadeIn 0.5s ease 1s forwards;
+        }
+
+        .son:nth-child(2) {
+            animation: fadeIn 0.5s ease 2s forwards;
+        }
+
+        .son:nth-last-child(1) {
+            margin-right: 0px;
+            animation: fadeIn 0.5s ease 3s forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="parent">
+        <div class="son"></div>
+        <div class="son"></div>
+        <div class="son"></div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        .parent {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            width: 100%;
+            padding: 20px 0px;
+        }
+
+        #child {
+            padding: 8px 15px;
+            background-color: #ff571a;
+            border: unset;
+            color: #ffffff;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #child:hover {
+            background-color: #ff9933;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="parent">
+        <button id="child">button1</button>
+        <button id="remove">remove</button>
+
+    </div>
+
+
+    <script src="MyEventEmitter.js"></script>
+    <script>
+        const eventEmitter = new MyEventEmitter();
+        const childButton = document.getElementById('child');
+        const removeButton = document.getElementById('remove');
+
+        eventEmitter.on('greet', greetMorning);
+
+        eventEmitter.on('greet', greetNight);
+
+        childButton.addEventListener('click', () => {
+            eventEmitter.emit('greet', 'zhangsan');
+        }, false);
+
+
+        removeButton.addEventListener('click', () => {
+            // 移除事件监听器
+            eventEmitter.off('greet', greetNight);
+        }, false);
+
+
+        function greetNight(name) {
+            alert(`Good Night, ${name}!`);
+        }
+
+        function greetMorning(name) {
+            alert(`Good Morning, ${name}!`);
+
+        }
+    </script>
+
+</body>
+
+</html>

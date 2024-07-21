@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF8">
+    <title>Sprite Animation</title>
+    <style>
+        canvas {
+            width: 500px;
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="animationCanvasId"></canvas>
+    <h3>图片加载进度<h2 id="imageProgressId">0</h2>
+    </h3>
+    <button onclick="animator.play()">Play</button>
+    <button onclick="animator.pause()">Pause</button>
+    <button onclick="animator.setSpeed(-50)">Speed Up</button>
+    <button onclick="animator.setSpeed(100)">Slow Down</button>
+    <script src="ImageLoader.js"></script>
+    <script src="SpriteAnimator.js"></script>
+    <script>
+        const canvas = document.getElementById('animationCanvasId');
+        const imageProgress = document.getElementById('imageProgressId');
+
+        function subscribeProgress(progress) {
+            imageProgress.innerText = progress
+        }
+
+
+
+        const imageUrls = Array.from({ length: 5 }, (_, i) => `./images/img_${i + 1}.png`);
+        const loader = new ImageLoader(imageUrls, subscribeProgress);
+
+        loader.load().then(images => {
+            window.animator = new SpriteAnimator(canvas, images);
+            window.animator.play()
+        }).catch(error => {
+            console.error('Failed to load images', error);
+        });
+    </script>
+</body>
+
+</html>

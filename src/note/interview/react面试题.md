@@ -976,6 +976,68 @@ redux 数据流向规范简单，mobx 数据依赖于 Proxy， Object.defineProp
 Redux 可拓展性比较强，可以通过中间件自定义增强 dispatch 。
 基本有一个 store ，统一管理 store 下的状态，在 mobx 中可以有多个模块，可以理解每一个模块都是一个 store ，相互之间是独立的。
 
+### react-router
+
+this.props 会多出三个对象
+
+history
+location
+match
+
+#### history
+
+pushState(state, title, path)
+replaceState(state, title, path)
+
+监听事件只有浏览器的 `history.back()`、`history.forward()`、`history.go()`方法才会触发。
+`pushState，replaceState` 不会触发。
+
+```js
+window.addEventListener("popState", function (e) {});
+```
+
+```js
+history.push(`/home?name=${name}&mes=${mes}`);
+// 或者
+history.push({
+  pathname: "/home",
+  state: {
+    name,
+    mes,
+  },
+});
+
+const { state = {} } = this.prop.location;
+const { name, mes } = state;
+```
+
+#### hash
+
+切换路由本质上是改变 `window.location.hash 。`
+
+通过`hashchange` 可以监听 `hash` 值的改变。
+
+```js
+window.addEventListener("hashchange", function (e) {
+  /* 监听改变 */
+});
+```
+
+#### 自定义路由
+
+```js
+<CustomRouter path="/list" component={List} />;
+
+function CustomRouter(props) {
+  const permissionList = useContext(permissionContext); /* 获取权限列表 */
+  const haspermission = matchPermission(
+    permissionList,
+    props.path
+  ); /* 检查是否具有权限 */
+  return haspermission ? <Route {...props} /> : <Redirect to="/noPermission" />;
+}
+```
+
 ## react 组件的通讯方式
 
 ref

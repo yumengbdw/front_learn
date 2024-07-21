@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF8">
+    <title>Sprite Animation</title>
+    <style>
+        canvas {
+            width: 500px;
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="answer"></div>
+
+    <script>
+
+        const answerDom = document.getElementById("answer");
+
+        // 这个题目有个前提，就是1个地块只能割一次的前提下
+
+        function maxProfit(parcels, oilLimit) {
+            // 初始化dp数组，长度为n+1，初始值为0
+            const dp = new Array(oilLimit + 1).fill(0);
+
+            // 遍历每个地块 确保每个地块只被使用一次
+            parcels.forEach(([cost, profit]) => {
+                // 从后向前更新dp数组，只更新下标大于i >= cost 的值
+                for (let i = oilLimit; i >= cost; i--) {
+                    // 不收割的时候dp[i]收割则是 dp[i - cost] + profit
+                    dp[i] = Math.max(dp[i], dp[i - cost] + profit);
+                }
+            });
+
+            // 返回最大收益
+            return dp[oilLimit];
+        }
+
+        // 地块的耗油量和收益
+        const parcels = [[1, 1], [7, 9], [6, 10], [2, 4], [3, 5], [6, 10]];
+        // 给定的油量
+        const oilLimit = 10;
+        // 计算最大收益
+        const result = maxProfit(parcels, oilLimit);
+        console.log("Maximum profit:", result);
+        answerDom.innerText = `最大收益为:${result}`
+
+    </script>
+</body>
+
+</html>

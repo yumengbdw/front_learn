@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .month {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 16px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+            border: unset;
+            font-size: 15px;
+            color: #999999;
+        }
+
+        th {
+            background-color: lightgray;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="month">5月</div>
+    <table id="calendar"></table>
+
+    <script>
+        function generateCalendar() {
+            const date = new Date(2024, 4, 1);
+            const table = document.getElementById('calendar');
+            let row = document.createElement('tr');
+
+            // for (let i = 0; i < date.getDay(); i++) {
+            //     row.appendChild(document.createElement('td'));
+            // }
+            // 前面空格的天数
+            row.appendChild(document.createElement('td'));
+
+
+            while (date.getMonth() === 4 && date.getDate() < 29) {
+                const cell = document.createElement('td');
+                cell.textContent = date.getDate();
+                row.appendChild(cell);
+                // 按理应该是===6 的时候换行，2014.05.01是星期三，所以改为1
+                if (date.getDay() === 1) {
+                    table.appendChild(row);
+                    row = document.createElement('tr');
+                }
+
+                date.setDate(date.getDate() + 1);
+            }
+
+            if (row.childNodes.length > 0) {
+                table.appendChild(row);
+            }
+        }
+
+        generateCalendar();
+    </script>
+</body>
+
+</html>
