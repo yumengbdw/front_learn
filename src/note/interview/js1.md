@@ -106,7 +106,7 @@ console.log(new Date().valueOf());
 
 ```
 
-Nan null undefined -0 0 '' 为 false 其他所有基本类型以及引用类型全部为 true
+NaN null undefined -0 0 '' 为 false 其他所有基本类型以及引用类型全部为 true
 
 | 值                  | 转换为字符串 | 转为数字 | 转为布尔 |
 | ------------------- | ------------ | -------- | -------- |
@@ -691,8 +691,7 @@ function objectFactory() {
 
 ### this 指针，闭包，作用域
 
-词法作用域：静态作用域即函数执行时使用的是定义函数时的作用域
-动态作用域: 调用函数的时候确定的作用域
+词法作用域：静态作用域跟调用上下文有关
 基本类型栈中，对象在堆中。
 
 ### 执行上下文
@@ -1076,6 +1075,41 @@ point.prototype = Point 为什么相等
 
 ### 2. instanceof
 
+isPrototypeOf 实现
+
+```js
+Object.prototype.isPrototypeOf1 = function (obj) {
+  obj = obj.__proto__;
+  while (obj) {
+    if (obj === this) return true;
+    obj = obj.__proto__;
+  }
+  return false;
+};
+
+console.log(Array.isPrototypeOf1([]));
+console.log(Array.prototype.isPrototypeOf1([]));
+console.log(Object.isPrototypeOf1({}));
+console.log(Object.prototype.isPrototypeOf1({}));
+```
+
+instanceof 实现
+
+```js
+function instanceof1(left, right) {
+  // instanceof是保留字
+  let prototype = right.prototype;
+  left = left.__proto__;
+  while (left) {
+    if (left === prototype) return true;
+    left = left.__proto__;
+  }
+  return false;
+}
+
+console.log(instanceof1(Array, Object));
+```
+
 原理本质上就是看
 ` leftVaule.__proto__ = rightVaule.prototype`
 
@@ -1249,7 +1283,6 @@ console.log("run");
 
 箭头函数没有 prototype 属性，所以构造函数不能是箭头函数。
 不能作为构造函数的还有生成器函数和异步函数。
-
 箭头函数中的 this 是从定义它们的上下文继承的，不会根据调用它们的对象来动态设置
 
 `new.target`判断函数是 否作为构造函数被调用了

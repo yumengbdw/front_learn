@@ -1048,7 +1048,42 @@ redux
 
 ## react 优化之控制渲染
 
-### memo，PureComponent， shouldComponentUpdate， React.memo
+### 非必要不更新
+
+#### key
+
+#### state props 下放，对于影响其他组件的属性的一些 dom 可以抽出来成为一个子组件
+
+比如
+
+<div>
+  <input/>
+  <p></p>
+  <Complex/>
+</div>
+
+可以把 ` <input/> <p></p>` 抽出去
+
+```js
+<div>
+  <Form />
+  <Complex />
+</div>
+```
+
+本质上相当于
+
+const renderExpensive = useMemo(()=> <ExpensiveTree />)
+
+```js
+<div>
+  <input />
+  <p></p>
+  {renderExpensive()}
+</div>
+```
+
+#### memo，PureComponent， shouldComponentUpdate， React.memo
 
 react 控制 render 的方式 经典的就是 memo，缓存 element 对象。 组件从自身来控制：PureComponent ，shouldComponentUpdate 。
 
@@ -1106,6 +1141,8 @@ class Index extends React.Component {
   }
 }
 ```
+
+getDerivedStateFromProps 在 render 之前也可以判断条件后更新否则 return null 不更新
 
 #### immutable.js
 
@@ -1211,6 +1248,8 @@ const LazyComponent = React.lazy(() => import("./text"));
   <LazyComponent />
 </Suspense>;
 ```
+
+### 参考下面的十万条数据渲染
 
 ## React SSR
 
@@ -1659,8 +1698,6 @@ Virtual DOM 就是描述真实 DOM 的一个对象（包括 tag， attrs， chil
 
 react 优势 1. batching 合并更新，减少渲染次数，提高渲染效率 2. diff 针对变化的 dom 更新。 跨平台性
 
-## React 性能优化
-
 ## 十万条数据渲染
 
 ### 1. 时间分片
@@ -1820,3 +1857,265 @@ IntersectionObserver API，可以自动"观察"元素是否可见
 
 所以也可以用 IntersectionObserver 替代 onScroll
 https://fe.azhubaby.com/React/%E9%9D%A2%E8%AF%95%E9%A2%98/%E6%B8%B2%E6%9F%93%E5%8D%81%E4%B8%87%E6%9D%A1%E6%95%B0%E6%8D%AE%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88.html
+
+## context 原理
+
+重点流程放在 context 的传递和更新两个方面
+
+1. Provider 如何传递 context？
+2. 三种获取 context 原理 （ Consumer， useContext，contextType ）？
+3. 消费 context 的组件，context 改变，为什么会订阅更新 （如何实现） 。
+4. context 更新，如何避免 pureComponent ， shouldComponentUpdate 渲染控制策略的影响。
+5. 如何实现的 context 嵌套传递 （ 多个 Provider ）?
+
+老版本的 context 是采用约定式的使用规则，于是有了 getChildContext 和 childContextTypes 协商的属性和方法，这种方式不仅不够灵活
+新版本引入 context 对象的概念，对象上除了保留了传递的信息 value 外 ， 还有提供者 Provider 和消费者 Consumer。
+
+`createContext`
+
+```js
+export function createContext<T>(
+  defaultValue: T,
+  calculateChangedBits: ?(a: T, b: T) => number
+): ReactContext<T> {
+  const context: ReactContext<T> = {
+    $$typeof: REACT_CONTEXT_TYPE, // 本质上就是 Consumer element 类型
+    _calculateChangedBits: calculateChangedBits,
+    _currentValue: defaultValue,
+    _currentValue2: defaultValue,
+    _threadCount: 0,
+    Provider: (null: any),
+    Consumer: (null: any),
+  };
+
+  /* 本质上就是 Provider element 类型。  */
+  context.Provider = {
+    $$typeof: REACT_PROVIDER_TYPE,
+    _context: context,
+  };
+
+  let hasWarnedAboutUsingNestedContextConsumers = false;
+  let hasWarnedAboutUsingConsumerProvider = false;
+
+  if (__DEV__) {
+    // A separate object, but proxies back to the original context object for
+    // backwards compatibility. It has a different $$typeof, so we can properly
+    // warn for the incorrect usage of Context as a Consumer.
+    const Consumer = {
+      $$typeof: REACT_CONTEXT_TYPE,
+      _context: context,
+      _calculateChangedBits: context._calculateChangedBits,
+    };
+    // $FlowFixMe: Flow complains about not setting a value, which is intentional here
+    Object.defineProperties(Consumer, {
+      Provider: {
+        get() {
+          if (!hasWarnedAboutUsingConsumerProvider) {
+            hasWarnedAboutUsingConsumerProvider = true;
+            console.error(
+              "Rendering <Context.Consumer.Provider> is not supported and will be removed in " +
+                "a future major release. Did you mean to render <Context.Provider> instead?"
+            );
+          }
+          return context.Provider;
+        },
+        set(_Provider) {
+          context.Provider = _Provider;
+        },
+      },
+      _currentValue: {
+        get() {
+          return context._currentValue;
+        },
+        set(_currentValue) {
+          context._currentValue = _currentValue;
+        },
+      },
+      _currentValue2: {
+        get() {
+          return context._currentValue2;
+        },
+        set(_currentValue2) {
+          context._currentValue2 = _currentValue2;
+        },
+      },
+      _threadCount: {
+        get() {
+          return context._threadCount;
+        },
+        set(_threadCount) {
+          context._threadCount = _threadCount;
+        },
+      },
+      Consumer: {
+        get() {
+          if (!hasWarnedAboutUsingNestedContextConsumers) {
+            hasWarnedAboutUsingNestedContextConsumers = true;
+            console.error(
+              "Rendering <Context.Consumer.Consumer> is not supported and will be removed in " +
+                "a future major release. Did you mean to render <Context.Consumer> instead?"
+            );
+          }
+          return context.Consumer;
+        },
+      },
+    });
+    // $FlowFixMe: Flow complains about missing properties because it doesn't understand defineProperty
+    context.Consumer = Consumer;
+  } else {
+    context.Consumer = context;
+  }
+
+  if (__DEV__) {
+    context._currentRenderer = null;
+    context._currentRenderer2 = null;
+  }
+
+  return context;
+}
+```
+
+createContext
+其初始值保存在 `context._currentValue`
+
+Provider 合并 Consumer 是 2 个 reactElement 对象.
+
+```js
+function beginWork(current, workInProgress, renderLanes): Fiber | null {
+  const updateLanes = workInProgress.lanes;
+  workInProgress.lanes = NoLanes;
+  // ...省略...
+  switch (workInProgress.tag) {
+    case ContextProvider:
+      return updateContextProvider(current, workInProgress, renderLanes);
+    case ContextConsumer:
+      return updateContextConsumer(current, workInProgress, renderLanes);
+  }
+}
+
+function updateContextProvider(
+  current: Fiber | null,
+  workInProgress: Fiber,
+  renderLanes: Lanes
+) {
+  // ...省略无关代码
+  const providerType: ReactProviderType<any> = workInProgress.type;
+  const context: ReactContext<any> = providerType._context;
+
+  const newProps = workInProgress.pendingProps;
+  const oldProps = workInProgress.memoizedProps;
+  // 接收新value
+  const newValue = newProps.value;
+
+  // 更新 ContextProvider._currentValue
+  pushProvider(workInProgress, newValue);
+
+  if (oldProps !== null) {
+    // ... 省略更新context的逻辑, 下文讨论
+  }
+
+  const newChildren = newProps.children;
+  reconcileChildren(current, workInProgress, newChildren, renderLanes);
+  return workInProgress.child;
+}
+```
+
+updateContextProvider()在 fiber 初次创建时就是保存 pendingProps.value 做为 context 的最新值, 之后这个最新的值用于供给消费.
+pushProvider 实际上是一个存储函数, 利用栈的特性, 先把 `context._currentValue` 压栈, 之后更新 `context._currentValue` = nextValue.
+与 pushProvider 对应的还有 popProvider, 同样利用栈的特性, 把栈中的值弹出, 还原到 `context._currentValue` 中.
+
+使用了 MyContext.Provider(reactElement 对象)组件之后,
+在 fiber 树构造过程中, context 的值会被 ContextProvider 类型的 fiber 节点所更新.
+
+1. 使用`<MyContext.Consumer>`消费
+
+```js
+function updateContextConsumer(
+  current: Fiber | null,
+  workInProgress: Fiber,
+  renderLanes: Lanes
+) {
+  let context: ReactContext<any> = workInProgress.type;
+  const newProps = workInProgress.pendingProps;
+  const render = newProps.children;
+
+  // 读取context
+  prepareToReadContext(workInProgress, renderLanes);
+  const newValue = readContext(context, newProps.unstable_observedBits);
+  let newChildren;
+
+  // ...省略无关代码
+}
+```
+
+2. 使用 useContext: 用于 function 中 const value = useContext(MyContext)
+   进入 updateFunctionComponent 后, 会调用 prepareToReadContext 无论是创建还是更新都会调用 readContext
+
+3. class 组件 MyClass.contextType = MyContext;
+
+进入 updateClassComponent 后 , 会调用 prepareToReadContext 无论是创建还是更新都会调用 readContext
+
+```js
+// ... 省略无关代码
+export function prepareToReadContext(
+  workInProgress: Fiber,
+  renderLanes: Lanes
+): void {
+  currentlyRenderingFiber = workInProgress;
+  lastContextDependency = null;
+  lastContextWithAllBitsObserved = null;
+
+  const dependencies = workInProgress.dependencies;
+  if (dependencies !== null) {
+    const firstContext = dependencies.firstContext;
+    if (firstContext !== null) {
+      if (includesSomeLane(dependencies.lanes, renderLanes)) {
+        // Context list has a pending update. Mark that this fiber performed work.
+        markWorkInProgressReceivedUpdate();
+      }
+      // Reset the work-in-progress list
+      dependencies.firstContext = null;
+    }
+  }
+}
+// ... 省略无关代码
+export function readContext<T>(
+  context: ReactContext<T>,
+  observedBits: void | number | boolean
+): T {
+  const contextItem = {
+    context: ((context: any): ReactContext<mixed>),
+    observedBits: resolvedObservedBits,
+    next: null,
+  };
+  // 1. 构造一个contextItem, 加入到 workInProgress.dependencies链表之后
+  if (lastContextDependency === null) {
+    lastContextDependency = contextItem;
+    currentlyRenderingFiber.dependencies = {
+      lanes: NoLanes,
+      firstContext: contextItem,
+      responders: null,
+    };
+  } else {
+    lastContextDependency = lastContextDependency.next = contextItem;
+  }
+  // 2. 返回 currentValue
+  return isPrimaryRenderer ? context._currentValue : context._currentValue2;
+}
+```
+
+返回`context._currentValue`, 并构造一个`contextItem添加到workInProgress.dependencies`链表之后
+`dependencies`属性会在更新时使用, 用于判定是否依赖了`ContextProvider`中的值.
+
+更新的时候, 同样进入 updateContextConsumer
+
+如果 value 改变的话会走如下逻辑
+
+向下遍历：从 ContextProvider 类型的节点开始, 向下查找所有 fiber.dependencies 依赖该 context 的节点(假设叫做 consumer).
+
+向上遍历: 从 consumer 节点开始, 向上遍历, 修改父路径上所有节点的 fiber.childLanes 属性, 表明其子节点有改动, 子节点会进入更新逻辑.
+
+总结：
+Context 的实现思路还是比较清晰, 总体分为 2 步.
+在消费状态时,ContextConsumer 节点调用 readContext(MyContext)获取最新状态.
+在更新状态时, 由 ContextProvider 节点负责查找所有 ContextConsumer 节点, 并设置消费节点的父路径上所有节点的 fiber.childLanes, 保证消费节点可以得到更新.

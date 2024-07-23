@@ -2,28 +2,133 @@
 
 > 实际上改变 this 指向就是在要改变后的 this 对象中复制一份调用的函数
 
+### call
+
+```js
+Function.property.call2 = function (context) {
+  var context = context || window; // 有可能传null bar.call(null)
+  context.somFn = this;
+  let args = [...arguments].slice(1); // 第一个参数是context
+  const result = context.somFn(...args);
+  delete context.someFn;
+  return result;
+};
+```
+
+### apply
+
+apply 和 call 的区别就是第二个参数是数组
+
+所以
+
+```js
+Function.property.apply2 = function(context， arr=[]){
+    var context = context || window // 有可能传null bar.call(null)
+    context.somFn = this
+    const result =  context.somFn(...arr)
+    delete context.someFn
+    return result
+}
+```
+
+### bind
+
+会创建一个新的函数，当新的函数调用的时候第一个参数是 this
+
+1. 返回的是一个函数
+2. 能够传入参数
+
+```js
+Function.property.bind = function (context) {
+  if (typeof this !== "function") {
+    throw new Error(
+      "Function.prototype.bind - what is trying to be bound is not callable"
+    );
+  }
+  var _this = this; // 谁调用this就是谁， 也就是bar  context 就是绑定的this即foo
+  var args = [...arguments].slice(1); // 取出bind函数第二个开始的参数作为函数调用的函数
+  var fTemp = function () {};
+  var fBound = function () {
+    // bindFoo(18)正常调用的时候this是window对象，实际相当于window.bindFoo(18)。此时的apply绑定的this应该是传进来的foo对象即context。
+    //当作为构造函数的时候this就不是context了应该就是fBound本身了。new bindFOO(18) new出来的对象实际上就是fBound的实例。
+    return _this.apply(this instanceof fTemp ? this : context, [
+      ...args,
+      ...arguments,
+    ]); // 这里的arguments是调用bind函数的参数即上面的bindFoo('18')
+  };
+
+  fTemp.prototype = this.prototype;
+
+  fBound.prototype = new fTemp();
+  return fBound;
+};
+```
+
+### 手写 new
+
 1.1. 手写 new `var person = objectFactory(Person, "Kevin", "18");`
 
-> 即 (new Object()).**proto** = Person.prototype
+> 即 `(new Object()).__proto__ = Person.prototype`
 
 ```js
 // 最终版的代码
 function objectFactory() {
-  var obj = new Object(),
-    Constructor = [].shift.call(arguments); // Array.prototype.shift.call(arguments) 即取出第一个参数
+  var obj = new Object();
+  var Constructor = [].shift.call(arguments); // Array.prototype.shift.call(arguments) 即取出第一个参数
   obj.__proto__ = Constructor.prototype;
   var ret = Constructor.apply(obj, arguments);
   return typeof ret === "object" ? ret : obj;
 }
 ```
 
+在上述代码中，防抖函数 debounce 会在指定的延迟时间内，如果函数再次被调用，就取消之前设置的定时器，重新计时。只有在延迟时间结束后没有新的调用，才执行函数。
+节流函数 throttle 则是确保在指定的延迟时间内，函数最多被调用一次。
+
+### 节流
+
+```js
+function throttle(func, delay) {
+  let lastCall = 0;
+  return function (...args) {
+    const now = new Date().getTime();
+    if (now - lastCall >= delay) {
+      func.apply(this, args);
+      lastCall = now;
+    }
+  };
+}
+```
+
+### 防抖
+
+```js
+function debounce(func, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
+```
+
 ## 2. 手写 promise
 
-## 3. 基本数据类型。8 大
+## 3. 基本数据类型。
+
+基本类型： boolean number String bigData Null Undefined Symbol
+引用类型 array obj function
+Boolean Number Undefined Null Symbol String
+
+typeof 对于 null array obj 都返回 Object
 
 ## 4. 检测数据类型方式
 
-`typeof` ` instanceof ``('str').constructor === String ` `Object.prototype.toString.call()`
+`typeof`
+`instanceof`
+`('str').constructor === String `
+`Object.prototype.toString.call()`
 
 '[object Array]'
 '[object String]'
@@ -31,19 +136,22 @@ function objectFactory() {
 ## 5. 判断数组方式
 
 Array.isArray
-` obj.__proto__ === Array.prototype;`
-`Array.prototype.isPrototypeOf(obj)`
-`   obj instanceof Array`
+obj.**proto** === Array.prototype;`
+`Array.prototype.isPrototypeOf(obj)`   checks if this object exists in another object's prototype chain.
+ obj instanceof Array`
 `Object.prototype.toString.call(obj)`
 
 ## 6. 关于 this
 
-词法作用域（静态作用域，与之对应的动态作用域）跟调用上下文有关，构造函数的 this 指向新创建的对象。改变 this 指向 apply call bind
-箭头函数 this 继承自自己作用域的上一层，没有 prototype 不能作为构造函数
-没有自己的 arguments 对象，箭头函数中访问 arguments 实际上获得的是它外层函数的 arguments 值。
-不能用作 Generator 函数，不能使用 yeild 关键字
+词法作用域（静态作用域，与之对应的动态作用域）跟调用上下文有关，即变量的作用域由它们声明的位置决定，而不是它们被调用的位置。
+。构造函数的 this 指向新创建的对象。改变 this 指向 apply call bind
 
-执行上下文按照类型分 全局执行上下文，函数执行上下文，eval 函数执行上下文
+箭头函数: this 继承自自己作用域的上一层，没有 prototype 不能作为构造函数,没有自己的 arguments 对象，箭头函数中访问 arguments 实际上获得的是它外层函数的 arguments 值。不能用作 Generator 函数，不能使用 yeild 关键字
+
+执行上下文按照类型分
+全局执行上下文，
+函数执行上下文，
+eval 函数执行上下文
 执行栈：用来存储代码执行的上下文，后进先出
 
 全局作用域 最外层变量
@@ -57,6 +165,12 @@ Array.isArray
 1. 变量对象 VO（variable object） 上下文中定义的变量和函数声明 全局上下文 VO 对应的 window
 2. 作用域链
 3. this
+
+this 是 JavaScript 中的一个特殊关键字，它指向函数执行的当前上下文。this 的指向取决于函数的调用方式，而不是函数声明的位置。以下是一些常见的 this 指向规则：
+全局上下文：在全局上下文中，this 指向全局对象（浏览器中是 window，Node.js 中是 global）。
+对象方法调用：当一个函数作为对象的方法被调用时，this 指向调用该方法的对象。
+构造函数调用：在构造函数中，this 指向新创建的对象。
+箭头函数：箭头函数没有自己的 this 值，它会捕获其所在上下文的 this 值。
 
 分析执行过程
 
@@ -143,31 +257,11 @@ checkscopeContext = {
 
 其他相关参见闭包章节
 
-## 7. let const var
-
-var 变量提升，全局 window 下的，重复声明后声明的替换前面，
-
-let 和 const 存在块级作用域，声明之前不可用即暂时性死去
-
-const 必须要初始值。不能改变指针指向
-
-## 8. 有哪些遍历方法区别
-
-forEach 对数据的操作会改变原数组，
-map 不改变原数组，返回新数组
-filter
-for...of item 为数组的值 遍历数组
-for... in 遍历数组和对象 item 为 key ，会遍历对象的整个原型链，返回数组中所有可枚举的属性(性能非常差不推荐使用
-every 只要有就返回 false some 只有要就返回 true
-find findIndex 返回第一个满足的 item 或者 index
-reduce reduceRight
-
-```js
-for (const [key, value] of Object.entries({ a: 1, b: 2 })) {
-}
-```
-
 ## 9. 原型和原型链
+
+每个函数都有一个 prototype 属性，这个属性指向一个对象，称为该函数的原型对象。当使用这个函数创建对象实例时，实例会继承原型对象上的属性和方法。
+对象之间的原型关系形成的链条，就是原型链
+当访问一个对象的属性或方法时，如果对象自身没有找到，就会沿着原型链向上查找，直到找到或者到达 null 即 Object.prototype 为止。
 
 回答： 查找属性顺序
 
@@ -177,6 +271,12 @@ for (const [key, value] of Object.entries({ a: 1, b: 2 })) {
 ## 10. 闭包
 
 有权访问另一个函数作用域中变量的函数
+
+闭包是返回函数的时候扫描函数内的标识符引用，把用到的本作用域的变量打成 Closure 包，放到 [[Scopes]] 里。
+
+eval 因为没法分析内容，所以直接调用会把整个作用域打包（所以尽量不要用 eval，容易在闭包保存过多的无用变量），而不直接调用则没有闭包。
+
+闭包是为了解决子函数晚于父函数销毁的问题，我们会在父函数销毁时，把子函数引用到的变量打成 Closure 包放到函数的 [[Scopes]] 上，让它计算父函数销毁了也随时随地能访问外部环境。
 
 ```js
 javascript
@@ -216,11 +316,87 @@ for (var i = 1; i <= 5; i++) {
 }
 ```
 
+闭包（Closure）是 JavaScript 中一个非常强大的概念，它指的是一个函数可以访问其创建时的作用域中的变量，即使这个函数在原始作用域之外被调用。
+
+### 闭包的特点：
+
+1. **访问自由变量**：闭包可以访问创建它时所在作用域中的变量，即使这些变量在函数外部是不可见的。
+
+2. **保持状态**：闭包可以保持函数的状态，即使函数执行完毕后，闭包仍然可以访问和修改这些状态。
+
+3. **函数作为一等公民**：函数可以作为参数传递给其他函数，也可以作为其他函数的返回结果。
+
+4. **延迟执行**：闭包可以延迟函数的执行，直到需要的时候才调用。
+
+### 闭包的作用：
+
+1. **数据封装**：闭包可以用来封装数据和逻辑，使得外部代码无法直接访问这些数据，从而实现数据的隐藏和保护。
+
+2. **创建私有变量**：闭包可以创建私有变量，这些变量只能在闭包内部访问，外部代码无法直接访问。
+
+3. **实现模块化**：闭包可以用来实现模块化，将相关的函数和变量封装在一起，形成一个独立的模块。
+
+4. **实现函数工厂**：闭包可以用来创建函数工厂，即返回一个函数的函数。这些返回的函数可以访问创建它们的闭包中的变量。
+
+5. **实现柯里化**：闭包可以用来实现柯里化，即预先填充函数参数的过程。通过闭包，可以创建一个函数，它接受一部分参数，并返回一个接受剩余参数的新函数。
+
+6. **实现异步编程**：闭包在异步编程中非常有用，例如在回调函数中访问外部变量。
+
+### 闭包示例：
+
+```javascript
+function outerFunction() {
+  var name = "Alice";
+
+  function innerFunction() {
+    console.log("Name:", name);
+  }
+
+  return innerFunction;
+}
+
+var closure = outerFunction();
+closure(); // 输出: Name: Alice
+```
+
+在这个示例中，`outerFunction` 返回了一个 `innerFunction` 函数。即使 `outerFunction` 执行完毕后，`innerFunction` 仍然可以访问 `outerFunction` 的局部变量 `name`。这就是闭包的作用。
+
+### 注意事项：
+
+- 闭包可能会占用更多的内存，因为它们会保持对创建时作用域的引用，直到闭包被销毁。
+- 过度使用闭包可能会导致代码难以理解和维护，因此需要谨慎使用。
+
+总之，闭包是 JavaScript 中一个非常有用的工具，它提供了强大的数据封装和函数封装能力。理解闭包的概念和使用方式对于编写高效、可维护的 JavaScript 代码非常重要。
+
 - 对作用域和作用域链的理解
 
 执行上下文：
 执行上下文类型： 全局执行上下文 函数执行上下文 eval 函数执行上下文 。
 执行上下文栈：
+
+## 7. let const var
+
+var 变量提升，全局 window 下的，重复声明后声明的替换前面，
+
+let 和 const 存在块级作用域，声明之前不可用即暂时性死去
+
+const 必须要初始值。不能改变指针指向
+
+## 8. 有哪些遍历方法区别
+
+forEach 对数据的操作会改变原数组，
+map 不改变原数组，返回新数组
+filter
+for...of item 为数组的值 遍历数组
+for... in 遍历数组和对象 item 为 key ，会遍历对象的整个原型链，返回数组中所有可枚举的属性(性能非常差不推荐使用
+every 只要有就返回 false some 只有要就返回 true
+find findIndex 返回第一个满足的 item 或者 index
+reduce reduceRight
+
+```js
+for (const [key, value] of Object.entries({ a: 1, b: 2 })) {
+}
+```
 
 ## 11. promise async await setTimeout Promise.all Promise.race
 
@@ -265,7 +441,53 @@ function generatorToAsync(generator) {
 
 ## 12. 浏览器垃圾回收机制 内存泄露
 
+在面试中，关于浏览器的垃圾回收机制和内存泄露的问题是常见的技术问题。以下是一些关键点，可以帮助你更好地理解和回答这些问题。
+
+### 浏览器垃圾回收机制：
+
+1. **引用计数**：这是最早的垃圾回收机制，通过计数每个对象被引用的次数来决定是否回收。如果一个对象的引用计数为 0，它就会被回收。但是，引用计数无法处理循环引用的问题。
+
+2. **标记-清除（Mark-and-Sweep）**：这是现代浏览器常用的垃圾回收机制。 遍历所有可达的对象，将它们标记为“活跃”回收未被标记的对象
+
+3. **复制（Copying）**：将内存分为两个区域，一半用于分配新对象，另一半用于存放存活的对象。当一个区域填满时，垃圾回收器将存活的对象复制到另一个区域，然后清空原来的区域。这种方法可以避免内存碎片，但代价是内存使用效率较低。
+
+4. **分代收集**：新生代中的对象生命周期较短，垃圾回收器会频繁地回收新生代。老生代中的对象生命周期较长，垃圾回收器会较少地回收老生代。
+
+5. **增量回收**：为了避免垃圾回收过程中的长时间停顿，现代浏览器的垃圾回收器会采用增量回收策略，将垃圾回收过程分成多个小步骤，逐步进行。
+
+### 内存泄露：
+
+内存泄露是指程序中不再使用的对象没有被垃圾回收器回收，导致内存占用持续增加。以下是一些常见的内存泄露场景：
+
+1. **全局变量**：将对象赋值给全局变量，这些对象会一直存在于内存中，直到页面关闭。
+
+2. **循环引用**：在 JavaScript 中，循环引用会导致引用计数无法归零，从而阻止垃圾回收器回收这些对象。
+
+3. **未移除的事件监听器**：如果为 DOM 元素添加了事件监听器，但没有在适当的时候移除，这些监听器会一直占用内存。
+
+4. **定时器回调**：使用 `setInterval` 或 `setTimeout` 创建的定时器，如果回调函数中引用了外部变量，这些变量会被保留在内存中。
+
+5. **闭包**：不当使用闭包可能导致内存泄露，因为闭包会捕获并保持对外部变量的引用。
+
+6. **DOM 引用**：在 JavaScript 中，如果一个 DOM 元素被删除，但是 JavaScript 中仍然有对这个元素的引用，这个元素不会被回收。
+
+### 避免内存泄露的策略：
+
+1. **及时清理**：在不需要的时候，及时清理全局变量、事件监听器、定时器等。
+
+2. **避免循环引用**：在可能产生循环引用的地方，使用 `WeakMap` 或 `WeakSet`，这些结构在它们的键或值被回收时会自动删除。
+
+3. **使用 `WeakRef`**：`WeakRef` 是一种弱引用，当被引用的对象被回收时，`WeakRef` 也会被回收。
+
+4. **监控内存使用**：使用浏览器的开发者工具监控内存使用情况，及时发现和解决内存泄露问题。
+
+5. **代码审查**：定期进行代码审查，检查可能的内存泄露问题。
+
+理解浏览器的垃圾回收机制和内存泄露问题对于编写高效、稳定的 Web 应用程序至关重要。在面试中，展示你对这些概念的深入理解，以及你如何避免和解决内存泄露问题，可以给面试官留下深刻印象。
+
 ## 13. es6 新特性
+
+箭头，解构及展开(...)，模版字符串``， 函数默认参数值，promise，Generator，类，let 和 const，proxy， for。。。of
 
 ## 14. 匿名函数即立即执行函数
 
