@@ -174,3 +174,52 @@ console.log(count.value); // 0
 reactive 和 shallowReactive
 
 teleport 对应 react 中的 portal
+
+slot
+
+```vue
+<child> 
+    <!-- 把v-slot的值指定为作⽤域上下⽂对象 -->
+    <template v-slot:default="slotProps">
+      来⾃⼦组件数据：{{slotProps.testProps}}
+    </template>
+    <template #default="slotProps">
+      来⾃⼦组件数据：{{slotProps.testProps}}
+    </template>
+
+    <template v-slot:content>内容...</template>
+
+
+</child>
+
+// child
+<template>
+  <slot name="footer" testProps="子组件的值">
+    <h3>没传footer插槽</h3>
+  </slot>
+
+  <slot name="content">插槽后备的内容</slot>
+</template>
+```
+
+initRender 的时候将组件 children 中的 slot 根据名称保存在 vm.$slots 里面
+
+render 函数过后
+
+```js
+_c("div", [_t("default", [_v("我是默认内容")])], 2);
+```
+
+`_v `表示穿件普通文本节点，`_t` 表示渲染插槽的函数 实际为 renderSlot
+
+```js
+function renderSlot(name, fallback, props, bindObject) {
+  // 得到渲染插槽内容的函数
+  var scopedSlotFn = this.$scopedSlots[name];
+  var nodes;
+  // 如果存在插槽渲染函数，则执行插槽渲染函数，生成nodes节点返回
+  // 否则使用默认值
+  nodes = scopedSlotFn(props) || fallback;
+  return nodes;
+}
+```

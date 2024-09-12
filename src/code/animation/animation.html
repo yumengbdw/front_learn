@@ -8,6 +8,21 @@
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <title>过渡动画</title>
     <style>
+        p::before {
+            content: "Before: ";
+            color: blue;
+        }
+
+        p::after {
+            content: " After.";
+            color: green;
+        }
+
+        p::selection {
+            background-color: yellow;
+            color: black;
+        }
+
         .box {
             width: 100px;
             height: 100px;
@@ -116,6 +131,7 @@
     <div class="container">
         <div class="box"></div>
         <button class="button-loading">按钮</button>
+        <p>ddddddddddd</p>
     </div>
 </body>
 <script></script>

@@ -214,7 +214,7 @@ function updateClassComponent() {
 - 如果是初始化阶段
 
 getDerivedStateFromProps(nextProps, prevState)
-componentWillMount() 触发条件
+废弃 componentWillMount() 触发条件
 
 `mountClassInstance`
 
@@ -245,10 +245,10 @@ function mountClassInstance() {
 
 updateClassInstance
 
-componentWillReceiveProps(newProps, nextContext)
+废弃 componentWillReceiveProps(newProps, nextContext)
 getDerivedStateFromProps( nextProps, prevState)
 shouldComponentUpdate(newProps,newState,nextContext)
-componentWillUpdate()
+废弃 componentWillUpdate()
 
 ```js
 function updateClassInstance() {
@@ -355,22 +355,23 @@ JavaScript 的限制在构造函数里如果要调用 this，那么提前就要�
 
 ## v18 的新特性
 
+合成事件在 id 为 app 的节点上之前版本都在 document 上
+
 1. setState 全部批量更新
-2. setState
-3. 新特性取消了 ie 的支持， 新特性全部基于现代浏览器
-4. 组件返回支持 null 和 undefined 返回，之前返回 undefined 会报错
-5. Suspense 不再需要 fallback 捕获
-6. 支持 useId
+2. 新特性取消了 ie 的支持， 新特性全部基于现代浏览器
+3. 组件返回支持 null 和 undefined 返回，之前返回 undefined 会报错
+4. Suspense 不再需要 fallback 捕获
+5. 支持 useId
    在服务器和客户端生成相同的唯一一个 id，避免 hydrating 的不兼容
-7. useSyncExternalStore
+6. useSyncExternalStore
    用于解决外部数据撕裂问题
-8. useInsertionEffect
+7. useInsertionEffect
    这个 hooks 只建议在 css in js 库中使用，这个 hooks 执行时机在 DOM 生成之后，useLayoutEffect 执行之前，它的工作原理大致与 useLayoutEffect 相同，此时无法访问 DOM 节点的引用，一般用于提前注入脚本
-9. Concurrent Mode
+8. Concurrent Mode
    同步不可中断更新变成了异步可中断更新
    useDeferredValue 和 startTransition 用来标记一次非紧急更新
-10. strict mode 更新
-    React 会对每个组件返回两次渲染，以便你观察一些意想不到的结果,在 react17 中去掉了一次渲染的控制台日志，以便让日志容易阅读。react18 取消了这个限制，第二次渲染会以浅灰色出现在控制台日志
+9. strict mode 更新
+   React 会对每个组件返回两次渲染，以便你观察一些意想不到的结果,在 react17 中去掉了一次渲染的控制台日志，以便让日志容易阅读。react18 取消了这个限制，第二次渲染会以浅灰色出现在控制台日志
 
 ## react 设计思想
 
@@ -1334,7 +1335,7 @@ React.memo、React.useCallback、React.usememo 的作用
 
 #### useEffect(fn, []) 和 componentDidMount 有什么差异
 
-useEffect 会捕获 props 和 state。即使在回调函数里，你拿到的还是初始的 props 和 state。如果你想要得到“最新”的值，你可以使用 ref。不过通常会有更简单的实现方式，所以你并不一定要用 ref。
+useEffect 会捕获 props 和 state。即使在回调函数里，你拿到的还是初始的 props 和 state。如果你想要得到“最新”的值，你可以使用 ref。不过通常会有更简单的实现方式，所以你并不一定要用 ref。也可以用第二个参数 deps
 
 执行时机不同 ​
 componentDidMount 在组件挂载之后运行。如果立即（同步）设置 state，那么 React 就会触发一次额外的 render，并将第二个 render 的响应作为初始 UI，
@@ -1362,7 +1363,7 @@ React.useEffect(()=>{
 
 ```
 
-useLayoutEffect 是在 DOM 更新之后，浏览器绘制之前
+useLayoutEffect 是在 DOM 更新之后，浏览器绘制之前，同步的。会阻塞主线程
 
 useEffect 执行是在浏览器绘制视图之后，
 接下来又改 DOM ，就可能会导致浏览器再次回流和重绘。而且由于两次绘制，视图上可能会造成闪现突兀的效果。
@@ -1699,6 +1700,8 @@ Virtual DOM 就是描述真实 DOM 的一个对象（包括 tag， attrs， chil
 react 优势 1. batching 合并更新，减少渲染次数，提高渲染效率 2. diff 针对变化的 dom 更新。 跨平台性
 
 ## 十万条数据渲染
+
+react-window 和 react-virtualized 是两个流行的虚拟化库。
 
 ### 1. 时间分片
 
@@ -2119,3 +2122,30 @@ export function readContext<T>(
 Context 的实现思路还是比较清晰, 总体分为 2 步.
 在消费状态时,ContextConsumer 节点调用 readContext(MyContext)获取最新状态.
 在更新状态时, 由 ContextProvider 节点负责查找所有 ContextConsumer 节点, 并设置消费节点的父路径上所有节点的 fiber.childLanes, 保证消费节点可以得到更新.
+
+## 怎么寻找 react 页面卡顿的原因
+
+1. 使用 React DevTools Profiler
+
+安装 React DevTools：
+在 Chrome 或 Firefox 浏览器中安装 React DevTools 扩展。
+打开 React DevTools，切换到 "Profiler" 选项卡。
+点击 "Start profiling" 按钮，开始记录性能数据。
+进行一些用户操作，然后点击 "Stop profiling" 按钮，停止记录性能数据。
+
+2. 使用浏览器开发者工具
+   Performance
+
+查看 "Main" 线程，找出哪些 JavaScript 函数执行时间较长。
+查看 "Frames" 选项卡，找出哪些帧的渲染时间超过了 16ms（导致掉帧）。
+
+3. 检查不必要的重新渲染
+   不必要的重新渲染是导致 React 页面卡顿的常见原因。
+
+函数组件 React.memo
+
+类组件使用 shouldComponentUpdate 或 PureComponent
+
+4. 优化状态管理
+
+尽量将状态保持在最小的组件范围内，避免将所有状态提升到顶层组件。

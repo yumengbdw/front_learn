@@ -29,6 +29,8 @@ contain-intrinsic-size: 200px;
 
 # 4.BFC 块格式化上下文
 
+BFC（Block Formatting Context，块级格式化上下文）
+
 > block, list-item, table 的元素，会生成 block-level box。并且参与 block formatting context；
 
 > inline-level box:display 属性为 inline, inline-block, inline-table 的元素，会生成 inline-level box。并且参与 inline formatting context；
@@ -55,7 +57,7 @@ bfc 特性
 
 #### 1. 兄弟盒子重叠
 
-在有 son2 的情况下，发现 song2 和 son1 重叠了，这是以为在明确 son1 是 float left 情况下 son1 明确形成了 bfc 可是 son2 没有形成。解决办法使得 son2 也形成 bfc
+在有 son2 的情况下，发现 son2 和 son1 重叠了，这是因为在明确 son1 是 float left 情况下 son1 明确形成了 bfc 可是 son2 没有形成。解决办法使得 son2 也形成 bfc
 
 根据形成 bfc 规则 以下任意属性均满足
 

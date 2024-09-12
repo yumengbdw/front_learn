@@ -996,3 +996,37 @@ AJAX 的核心是“异步”，XMLHttpRequest 对象：通过这个对象与服
 
 的核心是“异步”，XMLHttpRequest
 open(), send(), 和事件处理如 onreadystatechange
+
+const a = [1, 2,2,3,[1, 2],[1, 3],[1,3],[1, 3], { a: 1 },{a:1,b:1}]
+
+const b = new Set(...a)
+
+for(let item of b){
+if
+}
+
+ajax
+
+兼容性：在旧版本的浏览器中可能存在兼容性问题，需要进行额外的处理来确保在不同浏览器中正常工作
+
+fetch
+使用 Promise 来处理异步操作。
+不能在 node 环境使用
+
+语法简洁
+
+错误处理相对复杂一些
+
+axios
+使用 Promise
+可以在浏览器和 Node.js 中使用。
+
+Axios 可以自动将响应数据转换为 JSON 格式，无需手动处理
+拦截器
+
+在各种浏览器中都有较好的兼容性
+
+错误处理：
+Ajax 需要手动检查 XHR 对象的状态码和 readyState 属性来处理错误。
+Fetch 的错误处理相对复杂，需要分别处理网络错误和 HTTP 状态码错误。
+Axios 可以通过捕获 Promise 的拒绝来统一处理错误，并且可以在拦截器中进行全局的错误处理。

@@ -67,42 +67,50 @@ updateComponent = () => {
 ### 5、其他方法源码
 
 $set $nextTick 最终都是调用set 和nextTick方法
-$set 源码
+`$set` 源码
+
+vm.$set 实例方法，这也是全局 Vue.set 方法的别名
+
+解决的就是 data 对象中没定义，额外定义的变量的时候
 
 ```js
-// 如果 key 在对象中已经存在直接赋值
+Vue.set(vm.someObject, "b", 2);
 
-if (key in target && !(key in Object.prototype)) {
-  target[key] = val;
-  return val;
+export function set(target, key) {
+  // 如果 key 在对象中已经存在直接赋值
+  if (key in target && !(key in Object.prototype)) {
+    target[key] = val;
+    return val;
+  }
+
+  // 获取 target 中的 observer 对象
+  const ob = (target: any).__ob__;
+  // 如果 ob 不存在，target 不是响应式对象直接赋值
+  if (!ob) {
+    target[key] = val;
+    return val;
+  }
+  // 把 key 设置为响应式属性
+  defineReactive(ob.value, key, val);
+  // 发送通知
+  ob.dep.notify();
 }
-// 如果 ob 不存在，target 不是响应式对象直接赋值
-if (!ob) {
-  target[key] = val;
-  return val;
-}
-// 把 key 设置为响应式属性
-defineReactive(ob.value, key, val);
-// 发送通知
-ob.dep.notify();
 ```
 
 $delete 源码
 
+// 同`$set`
+
 ```js
-...
-// 同$set
-...
-delete target[key]
+delete target[key];
 if (!ob) {
-return
+  return;
 }
 // 通过 ob 发送通知
-  ob.dep.notify()
-
+ob.dep.notify();
 ```
 
-$watcher
+`$watcher`
 
 ```js
 Vue.prototype.$watch = function (
@@ -111,7 +119,9 @@ Vue.prototype.$watch = function (
   options?: Object
 ): Function {
 // 获取 Vue 实例 this
-const vm: Component = this if (isPlainObject(cb)) {
+const vm: Component = this
+
+if (isPlainObject(cb)) {
 // 判断如果 cb 是对象执行 createWatcher
     return createWatcher(vm, expOrFn, cb, options)
   }
@@ -135,7 +145,8 @@ return function unwatchFn () {
 
 ```
 
-三种 watcher computed Watcher user watcher render watcher
+三种 watcher。
+computed Watcher user watcher render watcher
 
 initState 的时候会先
 
@@ -162,7 +173,7 @@ export function initState(vm: Component) {
 
 initState 后才会调用 mount 方法，才会调用 render watcher
 
-$nextTick
+`$nextTick`
 
 ```js
 export function nextTick (cb?: Function, ctx?: Object) {
