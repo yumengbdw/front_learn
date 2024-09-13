@@ -25,7 +25,9 @@ react-native-linear-gradient
   end={{ x: 1, y: 1 }}
 >
   {/* 这里放置你想要应用渐变效果的内容 */}
-</LinearGradient>
+</LinearGradient>;
+
+GradientBackground;
 ```
 
 colors：一个数组，包含了渐变的颜色值。可以是十六进制颜色代码、RGB 颜色值等。
@@ -121,3 +123,18 @@ React 是一个高度遵循 FP（函数编程）的框架，其核心逻辑就�
 对于 classComponent 本质还是 render 函数，实例 instance 对象用来存储 state 和 props 的
 
 render phase，这个阶段是纯粹的 JS 执行过程，不涉及任何的 DOM 操作，在 React 中，一旦 Virtual Dom diff 的结果确定， 进入 commit phase 之后，任务就无法再被打断，而且 commit 的内容是固定的，所以基本也没有什么优化空间，所以围绕 React 性能优化的话题，基本上都是再 render phase 展开
+
+## 问题
+
+1. 移除和更改属性
+   `selected && <Image source={img}/>` 跟 `<Image source={selected ? img : ''}/> `
+
+`if(!visible) return null` 和`<Modal visible={visible}>`
+
+两种写法哪个性能好。
+
+## bug
+
+setBase
+
+导致 base 数组越点越大。
