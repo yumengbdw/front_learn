@@ -58,7 +58,7 @@ SSR
 
 1. 把 mounted 当成普通方法，子组件 mounted 方法里面调用`$emit('mounted','mounted 触发了')`
 
-```vue
+```js
 template>
   <div>
     <child-component @mounted="handleDoSomething"></child-component>
@@ -81,7 +81,7 @@ export default Vue.component("HelloWorld", {
 
 ```
 
-```vue
+```js
 <script>
 export default {
   ...
@@ -92,7 +92,7 @@ export default {
 </script>
 ```
 
-方法 2 用@hook 即可
+方法 2 `用@hook` 即可
 
 ```vue
 <child-component @hook:mounted="handleDoSomething"></child-component>

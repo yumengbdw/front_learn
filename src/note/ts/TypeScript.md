@@ -739,3 +739,13 @@ nameID 数组对象中 name 对应的 key array
 get the first object
 array[0][valueID]
 array[0][nameID]
+
+<!-- TODO -->
+
+[typeScript 参考文章 1](https://medium.com/@martin_hotell/10-typescript-pro-tips-patterns-with-or-without-react-5799488d6680)
+
+[typeScript 参考文章 2](https://juejin.cn/post/6844903904140853255)
+
+[typeScript 参考文章 3](https://juejin.cn/post/6844903796997357582)
+
+[简介的 js 代码](https://github.com/beginor/clean-code-javascript)

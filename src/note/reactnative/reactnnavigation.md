@@ -145,12 +145,14 @@ navigation.navigate({
 
 应用程序数据与导航数据分离开来，多个页面使用相同数据建议使用 redux
 
-navigation.addListener('focus', () => {
-// 屏幕进入焦点时执行的操作
-console.log('Screen focused');
+```js
+navigation.addListener("focus", () => {
+  // 屏幕进入焦点时执行的操作
+  console.log("Screen focused");
 });
 
-navigation.addListener('blur', () => {
-// 屏幕失去焦点时执行的操作
-console.log('Screen blurred');
+navigation.addListener("blur", () => {
+  // 屏幕失去焦点时执行的操作
+  console.log("Screen blurred");
 });
+```

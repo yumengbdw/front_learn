@@ -107,7 +107,40 @@ const requestStatus = {
 };
 ```
 
-图片
+## ReactNative 组件
+
+### Text
+
+1.  lineHeight 基本都要设置才能保持设计稿一致。
+
+Text 也可以响应 `onPress` 事件，记得将 `suppressHighlighting` 设置为 true，否则在 iOS 上会有一个比较丑的点击高亮效果。
+
+`numberOfLines`：超出的文字会被截断，并且会显三个点。
+
+`adjustsFontSizeToFit`自动缩小字体来适应样式的约束
+
+`fontWeight` 设置 bold bolder 之类的。数值只对 iOS 有效
+
+### View
+
+flex 只能填满主轴。
+填满交叉轴，则需要在其父组件中设置 alignItems: 'stretch'，这是默认值；或者在 flex 子组件中设置 alignSelf: 'stretch' 或 width: '100%'。
+
+`onLayout`获取 View 位置和大小。
+
+1px 分割线 StyleSheet.hairlineWidth 这个常数将总是一个整数的像素，并将试图匹配底层平台上细线的标准宽度。
+
+`roundToNearestPixel` PixelRatio.roundToNearestPixel(50).转为就近的整数数值
+
+iOS: shadowColor、shadowOffset、shadowOpacity、shadowRadius 这几个样式属性来设置阴影。但除了
+
+android: 只支持 shadowColor
+
+`collapsable`
+
+`pointerEvents` 控制 View 是否可以作为触摸事件的目标,
+
+### Image
 
 静态图片资源；
 
@@ -167,9 +200,40 @@ _。Base64 从 ASCII 256 个字符中选取了 64 个可见字符作为基础，
 
 _ASCII 256 个字符需要 8 个比特来表示（2^8=256），Base64 的 64 个字符只需要 6 个比特位来表示（2^6=64）。但实际上，Base64 字符也是以 ASCII 码的形式存在，因此这里就有 2 个比特的浪费（8-6=2） 因此转换后的体积就大了 1/3_
 
-markdown 斜体
+Android 上面图片没有做缓存并且体验不好，官方推荐 FastImage
+并且有子节点
 
-## textInput
+```js
+<FastImage
+  source={checked ? require("./checked.png") : require("./unchecked.png")}
+  resizeMode="contain"
+  tintColor={checked ? "#448AFF" : "#888888"}
+  style={{ width: 14, height: 14 }}
+>
+  <Text>我是有子节点的</Text>
+</FastImage
+```
+
+### ScrollView
+
+contentContainerStyle： 设置内容样式
+scrollEventThrottle ：iOS 滚动事件的触发频率。默认值为 0 建议 16
+
+keyboardDismissMode: 用来设置当拖动 ScrollView 时，是否关闭键盘，默认是 none。然而大多数情况下，我们设置的值都是 on-drag，即拖动 ScrollView 时关闭键盘。
+
+`keyboardShouldPersistTaps`: 用来设置当点击 ScrollView 时，是否保持打开键盘，默认是 never，即关闭键盘。保持默认即可。
+
+### TextInput
+
+当将 multiline 设置为 true 时，
+iOS 上，文本会与顶部对齐，
+Andriod 上，则保持垂直居中。需要将 textAlignVertical 设置为 top 会有默认的 padding
+
+保持 padding 一致需要设置为 0
+
+`selectionColor`:光标颜色
+
+autoCorrect、autoCapitalize、autoComplete 不适合中文输入，默认可以关闭
 
 对焦 focus()、失焦 blur()、控制选中文字的光标 setSelection。
 
@@ -217,3 +281,8 @@ web-search
 Android Only
 
 visible-password
+
+keyboardDidShow 和 keyboardDidHide 事件，可以在键盘显示或隐藏时 调整 ui 时候不实时
+
+建议 KeyboardInsetsView（包： keyboard-insets），它能同步地获取键盘的高度，从而可以实时而优雅地响应键盘的显示或隐藏
+(keyboard-insets 包)[https://github.com/sdcxtech/react-native-troika/blob/master/packages/keyboard-insets/README.md]
