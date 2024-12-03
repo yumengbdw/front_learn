@@ -286,3 +286,5 @@ keyboardDidShow 和 keyboardDidHide 事件，可以在键盘显示或隐藏时 �
 
 建议 KeyboardInsetsView（包： keyboard-insets），它能同步地获取键盘的高度，从而可以实时而优雅地响应键盘的显示或隐藏
 (keyboard-insets 包)[https://github.com/sdcxtech/react-native-troika/blob/master/packages/keyboard-insets/README.md]
+
+cover 会覆盖整个容器，可能会裁剪图像；contain 会保持图像比例，完整显示在容器内；stretch 会拉伸图像以填满容器

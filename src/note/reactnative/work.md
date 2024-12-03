@@ -138,3 +138,9 @@ render phase，这个阶段是纯粹的 JS 执行过程，不涉及任何的 DOM
 setBase
 
 导致 base 数组越点越大。
+
+actualFinishedRate && (
+<Tag backgroundColor="#FF8003" fontStyle={{ color: '#fff', fontWeight: 500 }} space={0}>
+{`预估${finishedRate}%`}
+</Tag>
+)

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title>过渡动画</title>
+    <style>
+        body {
+            width: 100%;
+            height: 100%;
+            /* background-image: radial-gradient(hsl(197, 7%, 81%),
+                    hsl(209, 33%, 73%)); */
+            font-family: Helvetica, Arial, sans-serif;
+            color: white;
+            font-family: Raleway, Helvetica, Arial, sans-serif;
+            line-height: 1.4;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: Alfa Slab One, serif;
+            font-weight: 400;
+        }
+
+        main {
+            display: block;
+        }
+
+        .content {
+            height: 90px;
+            width: 290px;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .label {
+            font-size: 20px;
+            color: #666666;
+            flex-shrink: 0;
+        }
+
+        .right {
+            display: flex;
+            flex-grow: 1;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .amount {
+            background-color: #f00;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff571a;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .selfRightUnit {
+            font-size: 20px;
+            color: #111111;
+            flex-shrink: 0;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <div class="label">标题</div>
+        <div class="right">
+            <div class="amount">999999999</div>
+            <div class="selfRightUnit">对对对111</div>
+        </div>
+
+    </div>
+
+</body>
+
+<script></script>
+
+</html>
+
+
+<html lang="en">
